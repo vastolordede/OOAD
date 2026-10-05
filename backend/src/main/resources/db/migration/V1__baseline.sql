@@ -1,0 +1,3 @@
+-- OOAD Cosmetics database baseline.
+-- Business tables are intentionally added in later migrations according to the checklist.
+-- Flyway will record this migration in flyway_schema_history.

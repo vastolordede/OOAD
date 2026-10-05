@@ -1,0 +1,46 @@
+# ==========================================================
+# Local patch workflow (never commit patches/backups)
+# ==========================================================
+backend/work/
+
+# ==========================================================
+# Secrets / environment
+# ==========================================================
+.env
+.env.*
+backend/.env
+frontend/.env
+!backend/.env.example
+!frontend/.env.example
+
+# ==========================================================
+# Java / Gradle
+# ==========================================================
+.gradle/
+**/.gradle/
+**/build/
+**/out/
+*.class
+
+# Keep Gradle wrapper when generated
+!backend/gradle/wrapper/gradle-wrapper.jar
+!backend/gradle/wrapper/gradle-wrapper.properties
+!backend/gradlew
+!backend/gradlew.bat
+
+# ==========================================================
+# Frontend (future React/Vite)
+# ==========================================================
+**/node_modules/
+**/dist/
+**/.vite/
+
+# ==========================================================
+# IDE / OS / logs
+# ==========================================================
+.idea/
+.vscode/
+*.iml
+*.log
+.DS_Store
+Thumbs.db
