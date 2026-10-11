@@ -5,7 +5,8 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-@Entity
+// Tên entity trong JPQL là PurchaseOrder để không trùng từ khóa ORDER của HQL.
+@Entity(name = "PurchaseOrder")
 @Table(name = "orders")
 public class Order extends BaseEntity {
 
