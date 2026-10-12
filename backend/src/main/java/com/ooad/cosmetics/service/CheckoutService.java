@@ -37,6 +37,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class CheckoutService {
@@ -104,10 +105,6 @@ public class CheckoutService {
      */
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
-        if (request.paymentMethod() != PaymentMethod.COD) {
-            throw new BadRequestException("Only COD payment is supported at the moment");
-        }
-
         User user = currentUserService.requireCurrentUser();
 
         // Tính lại toàn bộ ở backend (O09 - O12), khóa giỏ hàng chống bấm đặt hai lần.
@@ -134,9 +131,13 @@ public class CheckoutService {
 
         Payment payment = new Payment();
         payment.setOrder(order);
-        payment.setMethod(PaymentMethod.COD);
+        payment.setMethod(request.paymentMethod());
         payment.setStatus(PaymentStatus.PENDING);
         payment.setAmount(quote.total());
+        if (request.paymentMethod() == PaymentMethod.ONLINE) {
+            // O48: mã giao dịch giả thay cho mã của cổng thanh toán thật.
+            payment.setTransactionRef(newMockTransactionRef());
+        }
         Payment savedPayment = paymentRepository.save(payment);
 
         // V12
@@ -264,6 +265,10 @@ public class CheckoutService {
                 line.lineTotal(),
                 imageUrl
         );
+    }
+
+    private String newMockTransactionRef() {
+        return "MOCK-" + UUID.randomUUID().toString().replace("-", "").substring(0, 20).toUpperCase();
     }
 
     private String normalizeNullable(String value) {
