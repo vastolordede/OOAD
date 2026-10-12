@@ -182,6 +182,10 @@ public class OrderService {
             );
         }
 
+        if (next == OrderStatus.CONFIRMED) {
+            requireOnlinePaymentCompleted(order);
+        }
+
         if (next == OrderStatus.CANCELLED) {
             cancel(order);
         } else {
@@ -227,6 +231,16 @@ public class OrderService {
                     && payment.getStatus() == PaymentStatus.PENDING) {
                 payment.setStatus(PaymentStatus.PAID);
                 payment.setPaidAt(now);
+            }
+        });
+    }
+
+    /** O48: đơn thanh toán online chỉ được xác nhận sau khi khách đã thanh toán xong. */
+    private void requireOnlinePaymentCompleted(Order order) {
+        paymentRepository.findByOrderId(order.getId()).ifPresent(payment -> {
+            if (payment.getMethod() == PaymentMethod.ONLINE
+                    && payment.getStatus() != PaymentStatus.PAID) {
+                throw new BadRequestException("Online payment has not been completed");
             }
         });
     }

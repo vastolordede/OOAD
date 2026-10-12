@@ -304,6 +304,71 @@ class OrderServiceTest {
                 .hasMessage("from must not be after to");
     }
 
+    // ---------------- online payment must be completed before confirming ----------------
+
+    @Test
+    void updateStatusRefusesToConfirmAnOnlineOrderThatIsNotPaidYet() {
+        Order order = order(10L, OrderStatus.PENDING);
+        when(orderRepository.lockById(10L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(10L))
+                .thenReturn(Optional.of(payment(order, PaymentMethod.ONLINE, PaymentStatus.PENDING)));
+
+        assertThatThrownBy(() -> service.updateStatus(10L, OrderStatus.CONFIRMED))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Online payment has not been completed");
+
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING);
+    }
+
+    @Test
+    void updateStatusRefusesToConfirmAnOnlineOrderWhosePaymentFailed() {
+        Order order = order(10L, OrderStatus.PENDING);
+        when(orderRepository.lockById(10L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(10L))
+                .thenReturn(Optional.of(payment(order, PaymentMethod.ONLINE, PaymentStatus.FAILED)));
+
+        assertThatThrownBy(() -> service.updateStatus(10L, OrderStatus.CONFIRMED))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Online payment has not been completed");
+    }
+
+    @Test
+    void updateStatusConfirmsAnOnlineOrderOnceItIsPaid() {
+        Order order = order(10L, OrderStatus.PENDING);
+        when(orderRepository.lockById(10L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(10L))
+                .thenReturn(Optional.of(payment(order, PaymentMethod.ONLINE, PaymentStatus.PAID)));
+
+        OrderResponse response = service.updateStatus(10L, OrderStatus.CONFIRMED);
+
+        assertThat(response.status()).isEqualTo(OrderStatus.CONFIRMED);
+    }
+
+    @Test
+    void updateStatusConfirmsACodOrderWithoutWaitingForPayment() {
+        Order order = order(10L, OrderStatus.PENDING);
+        when(orderRepository.lockById(10L)).thenReturn(Optional.of(order));
+        when(paymentRepository.findByOrderId(10L))
+                .thenReturn(Optional.of(payment(order, PaymentMethod.COD, PaymentStatus.PENDING)));
+
+        OrderResponse response = service.updateStatus(10L, OrderStatus.CONFIRMED);
+
+        assertThat(response.status()).isEqualTo(OrderStatus.CONFIRMED);
+    }
+
+    @Test
+    void updateStatusStillAllowsCancellingAnUnpaidOnlineOrder() {
+        Order order = order(10L, OrderStatus.PENDING);
+        when(orderRepository.lockById(10L)).thenReturn(Optional.of(order));
+        Payment payment = payment(order, PaymentMethod.ONLINE, PaymentStatus.PENDING);
+        when(paymentRepository.findByOrderId(10L)).thenReturn(Optional.of(payment));
+
+        OrderResponse response = service.updateStatus(10L, OrderStatus.CANCELLED);
+
+        assertThat(response.status()).isEqualTo(OrderStatus.CANCELLED);
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PENDING);
+    }
+
     // ---------------- helpers ----------------
 
     private Order order(Long id, OrderStatus status) {

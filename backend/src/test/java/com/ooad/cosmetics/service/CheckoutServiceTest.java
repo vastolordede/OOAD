@@ -261,13 +261,36 @@ class CheckoutServiceTest {
     }
 
     @Test
-    void createOrderRejectsOnlinePaymentForNow() {
-        assertThatThrownBy(() -> service.createOrder(
-                new CreateOrderRequest(5L, null, PaymentMethod.ONLINE, null)))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("Only COD payment is supported at the moment");
+    void createOrderWithOnlinePaymentCreatesAPendingPaymentWithAMockTransactionReference() {
+        stubCart(item(variant(10L, "100000.00", 5, CatalogStatus.ACTIVE), 2));
 
-        verifyNoInteractions(stockService);
+        OrderResponse response = service.createOrder(
+                new CreateOrderRequest(5L, null, PaymentMethod.ONLINE, null)
+        );
+
+        ArgumentCaptor<Payment> captor = ArgumentCaptor.forClass(Payment.class);
+        verify(paymentRepository).save(captor.capture());
+        Payment saved = captor.getValue();
+        assertThat(saved.getMethod()).isEqualTo(PaymentMethod.ONLINE);
+        assertThat(saved.getStatus()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(saved.getPaidAt()).isNull();
+        assertThat(saved.getTransactionRef()).startsWith("MOCK-").hasSize(25);
+
+        assertThat(response.payment().method()).isEqualTo(PaymentMethod.ONLINE);
+        assertThat(response.payment().transactionRef()).isEqualTo(saved.getTransactionRef());
+        verify(stockService).deduct(10L, 2);
+    }
+
+    @Test
+    void createOrderWithCodHasNoTransactionReference() {
+        stubCart(item(variant(10L, "100000.00", 5, CatalogStatus.ACTIVE), 1));
+
+        OrderResponse response = service.createOrder(
+                new CreateOrderRequest(5L, null, PaymentMethod.COD, null)
+        );
+
+        assertThat(response.payment().method()).isEqualTo(PaymentMethod.COD);
+        assertThat(response.payment().transactionRef()).isNull();
     }
 
     @Test
