@@ -1,13 +1,15 @@
 # Hướng dẫn chạy test (phần Cart, Order, Voucher, Review, Dashboard)
 
-Có hai loại test:
+Backend hiện chỉ khai báo Gradle task `test` và chưa có task `integrationTest`. Task `test` chạy mọi test JUnit được phát hiện, bao gồm cả lớp integration có `@Tag("integration")`; tag hiện chưa được dùng để loại chúng khỏi task. Vì vậy, chạy toàn bộ `test` cần PostgreSQL test riêng.
 
-| Loại | Lệnh | Cần database? | Dùng để |
-|---|---|---|---|
-| Unit test | `gradlew.bat test` | Không | Kiểm tra logic nhanh, dữ liệu giả (mock) |
-| Integration test | `gradlew.bat integrationTest` | Có, PostgreSQL thật | Kiểm tra transaction, rollback, tranh chấp đồng thời, ràng buộc dữ liệu, các truy vấn thật |
+Để chạy một nhóm unit test không cần database, dùng các bộ lọc theo lớp:
 
-`gradlew test` **không** chạy integration test, nên máy nào chưa có database test vẫn chạy được unit test.
+```powershell
+cd backend
+.\gradlew.bat test --tests "*OrderStatusTest" --tests "*OrderPricingTest" --tests "*ReviewServiceTest" --tests "*VoucherServiceTest" --tests "*DashboardServiceTest" --tests "*CartServiceTest" --tests "*OrderServiceTest"
+```
+
+Để chỉ chạy integration test, dùng task `test` với bộ lọc `--tests` tương ứng sau khi cấu hình PostgreSQL test như bên dưới. Không dùng lệnh `gradlew.bat integrationTest` cho đến khi task đó được khai báo trong `build.gradle`.
 
 ## 1. Tạo database test (làm một lần)
 
@@ -34,11 +36,11 @@ Muốn đổi, đặt biến môi trường `TEST_DB_URL`, `TEST_DB_USERNAME`, `
 
 ```powershell
 cd backend
-gradlew.bat test               # unit test
-gradlew.bat integrationTest    # integration test
+.\gradlew.bat test --tests "*OrderStatusTest" --tests "*OrderPricingTest" --tests "*ReviewServiceTest" --tests "*VoucherServiceTest" --tests "*DashboardServiceTest" --tests "*CartServiceTest" --tests "*OrderServiceTest"
+.\gradlew.bat test --tests "*CheckoutOrderIntegrationTest"  # integration; requires dedicated test database
 ```
 
-Chạy một lớp test: `gradlew.bat integrationTest --tests "*CheckoutOrderIntegrationTest"`.
+Chạy một lớp integration test khác bằng cách thay bộ lọc `--tests`. Không chạy toàn bộ task `test` nếu chưa cấu hình database test.
 
 ## 4. Các bài test và việc trong sheet
 
@@ -57,7 +59,29 @@ Chạy một lớp test: `gradlew.bat integrationTest --tests "*CheckoutOrderInt
 
 `DemoFlowApiIntegrationTest` đi qua HTTP thật: đăng ký, đăng nhập, địa chỉ, giỏ hàng, xem trước đơn, đặt đơn, Admin đưa đơn qua từng bước, review, dashboard, kèm kiểm tra 401 và 403.
 
-## 5. Khi test lỗi
+## 5. Frontend regression (T05-T09, T13)
+
+Frontend hiện chưa có test runner riêng; các bước dưới đây là kiểm thử thủ công trên UI, cần backend và PostgreSQL đang chạy. Không đánh dấu hoàn thành các ca API chỉ dựa trên việc build thành công.
+
+| Việc | Luồng kiểm tra | Kết quả mong đợi |
+|---|---|---|
+| T05 | Customer đăng nhập → mở `/products/{id}` → thêm variant vào cart → cập nhật số lượng → checkout → tạo order COD | Cart/checkout hiển thị dữ liệu backend; giá và tồn kho được backend xác nhận; tạo đơn không gửi lặp |
+| T06 | Admin cập nhật trạng thái đơn → Customer tải lại My Orders | Chưa thể kiểm thử qua UI: repo hiện không có `AdminOrderController`, dù `OrderService` có logic admin. Không tự đoán endpoint |
+| T07 | Hủy đơn PENDING/CONFIRMED trong Order Detail; kiểm tra stock sau đó | UI xác nhận trước khi hủy, trạng thái được tải lại; kiểm tra tồn kho khôi phục bằng backend/integration test |
+| T08 | Checkout nhập voucher hợp lệ, voucher sai, gỡ voucher | Preview backend cập nhật tổng; mã sai báo lỗi; gỡ mã gọi preview không có voucher |
+| T09 | Dùng đơn DELIVERED chưa review để gửi rating 1–5; thử gửi trùng OrderItem | Form chỉ xuất hiện cho DELIVERED; gửi trùng/rating không hợp lệ hiển thị lỗi backend |
+| T13 | Mở lần lượt Cart, Checkout, My Orders, Order Detail, My Reviews, Wishlist, Payment simulation, Dashboard, Voucher, Review Moderation ở desktop và mobile | Không vỡ layout; loading/error/empty state và điều hướng hoạt động |
+| R17 | Mở `/my-reviews`, sửa rating/comment, xóa review sau xác nhận | PUT/DELETE cập nhật danh sách; lỗi backend được hiển thị; không xóa khi người dùng hủy xác nhận |
+| W05 | Thêm sản phẩm vào wishlist từ Product Detail, tải `/wishlist`, xóa sản phẩm và phân trang | Chỉ lưu sản phẩm cho Customer hiện tại; giá/khả dụng lấy từ backend; trạng thái rỗng/lỗi hiển thị rõ |
+| O49 | Checkout chọn ONLINE; trên màn hình thanh toán thử confirm và fail; thử lại sau FAILED | Payment status đồng bộ với API; chỉ PENDING được thao tác; UI ghi rõ là mô phỏng, không có giao dịch thật |
+
+Ghi lại API response/lỗi và bước tái hiện khi test lỗi. Dùng dữ liệu/tài khoản test cục bộ, không đưa mật khẩu/token vào repository. Xem [frontend demo script](frontend-order-business-demo.md) để chuẩn bị kịch bản và [frontend handoff](frontend-order-business-handoff.md) để biết phần còn chặn.
+
+Các màn hình O36 (Create Order), R13 (Admin Review Moderation) và DB09 (Low Stock Widget) đã được triển khai trong code trước đó, dù một số dòng sheet đang hiển thị `Chưa Bắt Đầu`. Hash tham chiếu lần lượt là `cd1eb12`, `4052afc`, `583e25c`; hãy xác minh trạng thái sheet thay vì tạo lại.
+
+O40–O42/T06 vẫn bị chặn do chưa có Admin Order controller/HTTP contract. DB12–DB13 chưa thể tích hợp vì Dashboard API hiện không trả dữ liệu chuỗi doanh thu hoặc top-selling products. O49 là mô phỏng, không thay thế cổng thanh toán thật.
+
+## 6. Khi test lỗi
 
 | Triệu chứng | Nguyên nhân thường gặp |
 |---|---|
