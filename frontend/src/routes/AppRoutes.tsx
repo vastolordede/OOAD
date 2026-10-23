@@ -4,11 +4,13 @@ import { AccessDeniedPage } from '../pages/AccessDeniedPage'
 import { AdminSectionPage } from '../pages/AdminSectionPage'
 import { AdminVoucherFormPage } from '../pages/AdminVoucherFormPage'
 import { AdminVoucherListPage } from '../pages/AdminVoucherListPage'
+import { AdminReviewsPage } from '../pages/AdminReviewsPage'
 import { CheckoutPage } from '../pages/CheckoutPage'
 import { HomePage } from '../pages/HomePage'
 import { LoginPage } from '../pages/LoginPage'
 import { MyOrdersPage } from '../pages/MyOrdersPage'
 import { OrderDetailPage } from '../pages/OrderDetailPage'
+import { ProductDetailPage } from '../pages/ProductDetailPage'
 import { ProtectedRoute } from './ProtectedRoute'
 
 export function AppRoutes() {
@@ -17,6 +19,7 @@ export function AppRoutes() {
       <Route element={<HomePage />} path="/" />
       <Route element={<LoginPage />} path="/login" />
       <Route element={<AccessDeniedPage />} path="/access-denied" />
+      <Route element={<ProductDetailPage />} path="/products/:productId" />
       <Route element={<ProtectedRoute requiredRole="CUSTOMER" />}>
         <Route element={<CheckoutPage />} path="/checkout" />
         <Route element={<MyOrdersPage />} path="/my-orders" />
@@ -30,7 +33,7 @@ export function AppRoutes() {
           <Route element={<AdminVoucherListPage />} path="vouchers" />
           <Route element={<AdminVoucherFormPage />} path="vouchers/new" />
           <Route element={<AdminVoucherFormPage />} path="vouchers/:voucherId/edit" />
-          <Route element={<AdminSectionPage />} path="reviews" />
+          <Route element={<AdminReviewsPage />} path="reviews" />
         </Route>
       </Route>
       <Route element={<HomePage />} path="*" />

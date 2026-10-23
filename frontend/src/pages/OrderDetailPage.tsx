@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { cancelOrderApi, getOrderDetailApi } from '../api/orders.api'
+import { listMyReviewedOrderItemIdsApi } from '../api/reviews.api'
+import { OrderReviewForm } from '../components/common/OrderReviewForm'
 import type { OrderResponse, OrderStatus } from '../types/commerce'
+import type { ReviewResponse } from '../types/review'
 import { useToast } from '../hooks/useToast'
 import { getErrorMessage } from '../utils/getErrorMessage'
 import { formatCurrency } from '../utils/formatCurrency'
@@ -9,6 +12,12 @@ import { formatCurrency } from '../utils/formatCurrency'
 type OrderDetailState =
   | { key: string; status: 'success'; order: OrderResponse }
   | { key: string; status: 'error'; error: string }
+
+interface ReviewLookupState {
+  key: string
+  orderItemIds: number[]
+  error?: string
+}
 
 function canCancelOrder(status: OrderStatus): boolean {
   return status === 'PENDING' || status === 'CONFIRMED'
@@ -31,6 +40,7 @@ export function OrderDetailPage() {
   const id = Number(orderId)
   const isValidId = Number.isInteger(id) && id > 0
   const [detailState, setDetailState] = useState<OrderDetailState | null>(null)
+  const [reviewLookup, setReviewLookup] = useState<ReviewLookupState | null>(null)
   const [isCancelling, setIsCancelling] = useState(false)
   const [reloadVersion, setReloadVersion] = useState(0)
   const requestKey = `${id}:${reloadVersion}`
@@ -38,6 +48,7 @@ export function OrderDetailPage() {
   const order = currentDetailState?.status === 'success' ? currentDetailState.order : null
   const loadError = currentDetailState?.status === 'error' ? currentDetailState.error : null
   const isLoading = currentDetailState === null
+  const currentReviewLookup = reviewLookup?.key === requestKey ? reviewLookup : null
 
   useEffect(() => {
     if (!isValidId) {
@@ -47,9 +58,29 @@ export function OrderDetailPage() {
     let isCurrent = true
 
     getOrderDetailApi(id)
-      .then((loadedOrder) => {
+      .then(async (loadedOrder) => {
         if (isCurrent) {
           setDetailState({ key: requestKey, status: 'success', order: loadedOrder })
+        }
+
+        if (isCurrent && loadedOrder.status === 'DELIVERED') {
+          try {
+            const reviewedIds = await listMyReviewedOrderItemIdsApi(
+              loadedOrder.items.map((item) => item.id),
+            )
+            if (isCurrent) {
+              setReviewLookup({ key: requestKey, orderItemIds: reviewedIds })
+            }
+          } catch (error) {
+            if (isCurrent) {
+              setReviewLookup({
+                key: requestKey,
+                orderItemIds: [],
+                error: getErrorMessage(error),
+              })
+              toast.error(`Unable to check previously submitted reviews: ${getErrorMessage(error)}`)
+            }
+          }
         }
       })
       .catch((error: unknown) => {
@@ -61,7 +92,17 @@ export function OrderDetailPage() {
     return () => {
       isCurrent = false
     }
-  }, [id, isValidId, reloadVersion, requestKey])
+  }, [id, isValidId, reloadVersion, requestKey, toast])
+
+  function handleReviewSubmitted(review: ReviewResponse) {
+    setReviewLookup((current) => ({
+      key: requestKey,
+      orderItemIds: [
+        ...(current?.key === requestKey ? current.orderItemIds : []),
+        review.orderItemId,
+      ],
+    }))
+  }
 
   async function handleCancel() {
     if (!order || !canCancelOrder(order.status)) {
@@ -156,6 +197,35 @@ export function OrderDetailPage() {
                 </li>
               ))}
             </ul>
+            {order.status === 'DELIVERED' && (
+              <div className="order-review-section">
+                <h3>Product reviews</h3>
+                {isLoading || !currentReviewLookup ? (
+                  <p className="muted-text" role="status">Checking submitted reviews…</p>
+                ) : (
+                  order.items.map((item) => (
+                    <div className="order-review-item" key={item.id}>
+                      <strong>{item.productName}</strong>
+                      {currentReviewLookup.orderItemIds.includes(item.id) ? (
+                        <p className="review-complete">Already reviewed.</p>
+                      ) : (
+                        <>
+                          {currentReviewLookup.error && (
+                            <p className="form-error" role="alert">
+                              Could not verify previous reviews. The server will prevent duplicate submissions.
+                            </p>
+                          )}
+                          <OrderReviewForm
+                            onSubmitted={handleReviewSubmitted}
+                            orderItemId={item.id}
+                          />
+                        </>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </section>
           <section className="customer-panel">
             <h2>Shipping</h2>
