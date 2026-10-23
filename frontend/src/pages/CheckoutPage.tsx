@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { createAddressApi, listAddressesApi } from '../api/address.api'
 import { getCartApi } from '../api/cart.api'
 import { previewCheckoutApi } from '../api/checkout.api'
@@ -11,6 +11,7 @@ import type {
   CheckoutPreviewResponse,
   OrderResponse,
 } from '../types/commerce'
+import type { PaymentMethod } from '../types/order'
 import { useToast } from '../hooks/useToast'
 import { getErrorMessage } from '../utils/getErrorMessage'
 import { formatCurrency } from '../utils/formatCurrency'
@@ -38,6 +39,7 @@ function addressLabel(address: AddressResponse): string {
 
 export function CheckoutPage() {
   const toast = useToast()
+  const navigate = useNavigate()
   const [cart, setCart] = useState<CartResponse | null>(null)
   const [addresses, setAddresses] = useState<AddressResponse[]>([])
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null)
@@ -49,6 +51,7 @@ export function CheckoutPage() {
   const [voucherCode, setVoucherCode] = useState('')
   const [voucherDraft, setVoucherDraft] = useState('')
   const [note, setNote] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD')
   const [addressForm, setAddressForm] = useState<AddressRequest>(emptyAddress)
   const [showAddressForm, setShowAddressForm] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -201,9 +204,13 @@ export function CheckoutPage() {
       const order = await createOrderApi({
         addressId: selectedAddressId,
         voucherCode: voucherCode || null,
-        paymentMethod: 'COD',
+        paymentMethod,
         note: note.trim() || null,
       })
+      if (paymentMethod === 'ONLINE') {
+        navigate(`/my-orders/${order.id}/payment`)
+        return
+      }
       setCreatedOrder(order)
       toast.success(`Order #${order.id} created successfully.`)
     } catch (error) {
@@ -466,7 +473,33 @@ export function CheckoutPage() {
             <p className="form-error" role="alert">Checkout preview is not available. Review the selected address or voucher.</p>
           )}
 
-          <p className="payment-note">Payment method: Cash on delivery (COD)</p>
+          <fieldset className="payment-method-options">
+            <legend>Payment method</legend>
+            <label className="address-option">
+              <input
+                checked={paymentMethod === 'COD'}
+                name="paymentMethod"
+                onChange={() => setPaymentMethod('COD')}
+                type="radio"
+              />
+              <span>
+                <strong>Cash on delivery</strong>
+                <span>Pay when your order arrives.</span>
+              </span>
+            </label>
+            <label className="address-option">
+              <input
+                checked={paymentMethod === 'ONLINE'}
+                name="paymentMethod"
+                onChange={() => setPaymentMethod('ONLINE')}
+                type="radio"
+              />
+              <span>
+                <strong>Online payment (simulation)</strong>
+                <span>No real payment provider or charge is used.</span>
+              </span>
+            </label>
+          </fieldset>
           <button
             className="button button-primary button-full"
             disabled={!preview || isPreviewLoading || isSubmittingOrder || cart.hasUnavailableItems}

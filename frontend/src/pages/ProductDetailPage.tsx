@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getProductDetailApi } from '../api/products.api'
 import { addCartItemApi } from '../api/cart.api'
+import {
+  addWishlistItemApi,
+  listWishlistProductIdsApi,
+  removeWishlistItemApi,
+} from '../api/wishlist.api'
 import { ProductReviewsSection } from '../components/common/ProductReviewsSection'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
@@ -25,6 +30,10 @@ export function ProductDetailPage() {
   const [result, setResult] = useState<ProductState | null>(null)
   const [reloadVersion, setReloadVersion] = useState(0)
   const [addingVariantId, setAddingVariantId] = useState<number | null>(null)
+  const [wishlistResult, setWishlistResult] = useState<{ key: string; isWishlisted: boolean } | null>(null)
+  const [isUpdatingWishlist, setIsUpdatingWishlist] = useState(false)
+  const wishlistKey = `${user?.id ?? 'anonymous'}:${id}`
+  const isWishlisted = wishlistResult?.key === wishlistKey && wishlistResult.isWishlisted
   const requestKey = `${id}:${reloadVersion}`
   const currentResult = result?.key === requestKey ? result : null
   const product = currentResult?.product ?? null
@@ -53,6 +62,30 @@ export function ProductDetailPage() {
       isCurrent = false
     }
   }, [id, isValidId, requestKey])
+
+  useEffect(() => {
+    if (!isValidId || user?.role !== 'CUSTOMER') {
+      return
+    }
+
+    let isCurrent = true
+    listWishlistProductIdsApi()
+      .then((productIds) => {
+        if (isCurrent) {
+          setWishlistResult({ key: wishlistKey, isWishlisted: productIds.includes(id) })
+        }
+      })
+      .catch((requestError: unknown) => {
+        if (isCurrent) {
+          setWishlistResult({ key: wishlistKey, isWishlisted: false })
+          toast.error(getErrorMessage(requestError))
+        }
+      })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [id, isValidId, toast, user?.role, wishlistKey])
 
   if (!isValidId) {
     return (
@@ -108,6 +141,25 @@ export function ProductDetailPage() {
     }
   }
 
+  async function handleToggleWishlist(productId: number) {
+    setIsUpdatingWishlist(true)
+    try {
+      if (isWishlisted) {
+        await removeWishlistItemApi(productId)
+        setWishlistResult({ key: wishlistKey, isWishlisted: false })
+        toast.success('Product removed from wishlist.')
+      } else {
+        await addWishlistItemApi(productId)
+        setWishlistResult({ key: wishlistKey, isWishlisted: true })
+        toast.success('Product added to wishlist.')
+      }
+    } catch (requestError) {
+      toast.error(getErrorMessage(requestError))
+    } finally {
+      setIsUpdatingWishlist(false)
+    }
+  }
+
   return (
     <main className="customer-page product-page">
       <Link className="text-link" to="/">Return home</Link>
@@ -152,7 +204,24 @@ export function ProductDetailPage() {
             ))}
           </ul>
           {user?.role === 'CUSTOMER' && (
-            <Link className="text-link product-cart-link" to="/cart">View cart</Link>
+            <div className="product-actions">
+              <button
+                className="button button-secondary"
+                disabled={isUpdatingWishlist || wishlistResult?.key !== wishlistKey}
+                onClick={() => void handleToggleWishlist(product.id)}
+                type="button"
+              >
+                {isUpdatingWishlist
+                  ? 'Updating…'
+                  : wishlistResult?.key !== wishlistKey
+                    ? 'Loading wishlist…'
+                    : isWishlisted
+                      ? 'Remove from wishlist'
+                      : 'Add to wishlist'}
+              </button>
+              <Link className="text-link" to="/cart">View cart</Link>
+              <Link className="text-link" to="/wishlist">View wishlist</Link>
+            </div>
           )}
         </div>
       </section>

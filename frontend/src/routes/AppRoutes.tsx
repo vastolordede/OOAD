@@ -11,8 +11,11 @@ import { CartPage } from '../pages/CartPage'
 import { HomePage } from '../pages/HomePage'
 import { LoginPage } from '../pages/LoginPage'
 import { MyOrdersPage } from '../pages/MyOrdersPage'
+import { MyReviewsPage } from '../pages/MyReviewsPage'
 import { OrderDetailPage } from '../pages/OrderDetailPage'
+import { PaymentPage } from '../pages/PaymentPage'
 import { ProductDetailPage } from '../pages/ProductDetailPage'
+import { WishlistPage } from '../pages/WishlistPage'
 import { ProtectedRoute } from './ProtectedRoute'
 
 export function AppRoutes() {
@@ -27,6 +30,9 @@ export function AppRoutes() {
         <Route element={<CheckoutPage />} path="/checkout" />
         <Route element={<MyOrdersPage />} path="/my-orders" />
         <Route element={<OrderDetailPage />} path="/my-orders/:orderId" />
+        <Route element={<PaymentPage />} path="/my-orders/:orderId/payment" />
+        <Route element={<MyReviewsPage />} path="/my-reviews" />
+        <Route element={<WishlistPage />} path="/wishlist" />
       </Route>
       <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
         <Route element={<AdminLayout />} path="/admin">

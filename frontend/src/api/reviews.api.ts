@@ -6,6 +6,7 @@ import type {
   ProductReviewsResponse,
   ReviewResponse,
   ReviewStatus,
+  UpdateReviewRequest,
 } from '../types/review'
 
 export async function getProductReviewsApi(
@@ -51,6 +52,28 @@ export async function listMyReviewsApi(
   }
 
   return reviews
+}
+
+export async function updateMyReviewApi(
+  id: number,
+  payload: UpdateReviewRequest,
+): Promise<ReviewResponse> {
+  const response = await api.put<ApiResponse<ReviewResponse>>(`/reviews/${id}`, payload)
+  const review = response.data.data
+
+  if (!response.data.success || !review) {
+    throw new Error(response.data.message || 'Unable to update review.')
+  }
+
+  return review
+}
+
+export async function deleteMyReviewApi(id: number): Promise<void> {
+  const response = await api.delete<ApiResponse<null>>(`/reviews/${id}`)
+
+  if (!response.data.success) {
+    throw new Error(response.data.message || 'Unable to delete review.')
+  }
 }
 
 export async function listMyReviewedOrderItemIdsApi(

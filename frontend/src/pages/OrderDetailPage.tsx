@@ -242,6 +242,11 @@ export function OrderDetailPage() {
           <div><span>Shipping</span><span>{formatCurrency(order.shippingFee)}</span></div>
           <div className="summary-total"><strong>Total</strong><strong>{formatCurrency(order.totalAmount)}</strong></div>
           <div><span>Payment</span><span>{order.payment?.method ?? '—'}</span></div>
+          {order.payment?.method === 'ONLINE' && order.payment.status !== 'PAID' && order.status === 'PENDING' && (
+            <Link className="button button-primary button-full" to={`/my-orders/${order.id}/payment`}>
+              Continue to payment
+            </Link>
+          )}
           {order.voucherCode && <div><span>Voucher</span><span>{order.voucherCode}</span></div>}
           {order.note && <p className="order-note">Note: {order.note}</p>}
           {canCancelOrder(order.status) && (

@@ -67,15 +67,19 @@ export function MyOrdersPage() {
           <p className="eyebrow">Customer</p>
           <h1>My orders</h1>
         </div>
-        <label className="filter-control">
-          Filter by status
-          <select onChange={(event) => handleStatusChange(event.target.value)} value={status}>
-            <option value="">All orders</option>
-            {orderStatuses.map((orderStatus) => (
-              <option key={orderStatus} value={orderStatus}>{orderStatus}</option>
-            ))}
-          </select>
-        </label>
+        <div className="customer-page-actions">
+          <Link className="text-link" to="/my-reviews">My reviews</Link>
+          <Link className="text-link" to="/wishlist">Wishlist</Link>
+          <label className="filter-control">
+            Filter by status
+            <select onChange={(event) => handleStatusChange(event.target.value)} value={status}>
+              <option value="">All orders</option>
+              {orderStatuses.map((orderStatus) => (
+                <option key={orderStatus} value={orderStatus}>{orderStatus}</option>
+              ))}
+            </select>
+          </label>
+        </div>
       </header>
 
       {isLoading && <p className="loading-state" role="status">Loading orders…</p>}

@@ -8,6 +8,11 @@ export interface CreateReviewRequest {
   comment: string | null
 }
 
+export interface UpdateReviewRequest {
+  rating: number
+  comment: string | null
+}
+
 export interface ReviewResponse {
   id: number
   productId: number
