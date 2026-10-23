@@ -70,9 +70,16 @@ Frontend hiện chưa có test runner riêng; các bước dưới đây là ki�
 | T07 | Hủy đơn PENDING/CONFIRMED trong Order Detail; kiểm tra stock sau đó | UI xác nhận trước khi hủy, trạng thái được tải lại; kiểm tra tồn kho khôi phục bằng backend/integration test |
 | T08 | Checkout nhập voucher hợp lệ, voucher sai, gỡ voucher | Preview backend cập nhật tổng; mã sai báo lỗi; gỡ mã gọi preview không có voucher |
 | T09 | Dùng đơn DELIVERED chưa review để gửi rating 1–5; thử gửi trùng OrderItem | Form chỉ xuất hiện cho DELIVERED; gửi trùng/rating không hợp lệ hiển thị lỗi backend |
-| T13 | Mở lần lượt Cart, Checkout, My Orders, Order Detail, Dashboard, Voucher, Review Moderation ở desktop và mobile | Không vỡ layout; loading/error/empty state và điều hướng hoạt động |
+| T13 | Mở lần lượt Cart, Checkout, My Orders, Order Detail, My Reviews, Wishlist, Payment simulation, Dashboard, Voucher, Review Moderation ở desktop và mobile | Không vỡ layout; loading/error/empty state và điều hướng hoạt động |
+| R17 | Mở `/my-reviews`, sửa rating/comment, xóa review sau xác nhận | PUT/DELETE cập nhật danh sách; lỗi backend được hiển thị; không xóa khi người dùng hủy xác nhận |
+| W05 | Thêm sản phẩm vào wishlist từ Product Detail, tải `/wishlist`, xóa sản phẩm và phân trang | Chỉ lưu sản phẩm cho Customer hiện tại; giá/khả dụng lấy từ backend; trạng thái rỗng/lỗi hiển thị rõ |
+| O49 | Checkout chọn ONLINE; trên màn hình thanh toán thử confirm và fail; thử lại sau FAILED | Payment status đồng bộ với API; chỉ PENDING được thao tác; UI ghi rõ là mô phỏng, không có giao dịch thật |
 
 Ghi lại API response/lỗi và bước tái hiện khi test lỗi. Dùng dữ liệu/tài khoản test cục bộ, không đưa mật khẩu/token vào repository. Xem [frontend demo script](frontend-order-business-demo.md) để chuẩn bị kịch bản và [frontend handoff](frontend-order-business-handoff.md) để biết phần còn chặn.
+
+Các màn hình O36 (Create Order), R13 (Admin Review Moderation) và DB09 (Low Stock Widget) đã được triển khai trong code trước đó, dù một số dòng sheet đang hiển thị `Chưa Bắt Đầu`. Hash tham chiếu lần lượt là `cd1eb12`, `4052afc`, `583e25c`; hãy xác minh trạng thái sheet thay vì tạo lại.
+
+O40–O42/T06 vẫn bị chặn do chưa có Admin Order controller/HTTP contract. DB12–DB13 chưa thể tích hợp vì Dashboard API hiện không trả dữ liệu chuỗi doanh thu hoặc top-selling products. O49 là mô phỏng, không thay thế cổng thanh toán thật.
 
 ## 6. Khi test lỗi
 

@@ -31,6 +31,9 @@ React + TypeScript + Vite frontend for customer checkout/order/review flows and 
 | `/checkout` | CUSTOMER | Select/create shipping address, preview totals, apply/remove voucher, and create COD order |
 | `/my-orders` | CUSTOMER | Filter and paginate the current user's orders |
 | `/my-orders/:orderId` | CUSTOMER | Order detail, permitted cancellation, and delivered-order review form |
+| `/my-orders/:orderId/payment` | CUSTOMER | Simulated payment status and success/failure actions for ONLINE orders |
+| `/my-reviews` | CUSTOMER | Edit or delete the current user's reviews |
+| `/wishlist` | CUSTOMER | View and remove saved products |
 | `/admin/dashboard` | ADMIN | Summary cards, order status counts, and low-stock list |
 | `/admin/orders` | ADMIN | Placeholder pending the missing backend Admin Order controller |
 | `/admin/vouchers` | ADMIN | Voucher list, filters, create/edit, and activation status |
@@ -43,7 +46,7 @@ The reusable layout is defined in `src/components/common/AdminLayout.tsx`. API r
 - All responses use the Spring Boot `ApiResponse<T>` envelope; paginated endpoints use `PageResponse<T>`.
 - The Axios request interceptor reads `accessToken` and sends `Authorization: Bearer ...`.
 - Checkout totals and voucher validity come from `POST /api/checkout/preview`; the frontend does not calculate replacement totals.
-- Create order currently uses the supported COD payment method. Online payment remains outside the core UI scope.
+- Checkout supports COD and the backend's explicitly simulated `ONLINE` method; the latter does not connect to a real provider or charge money.
 - Customer cancellation is shown only for `PENDING` and `CONFIRMED`, matching `OrderStatus.canTransitionTo`.
 - Review creation is offered only for `DELIVERED` orders and remains subject to backend rating and duplicate-item validation.
 - Admin APIs are protected by the backend's `ADMIN` role. The Admin Order UI is blocked until its controller/HTTP contract is present.
