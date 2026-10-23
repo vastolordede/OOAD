@@ -4,6 +4,7 @@ import { AccessDeniedPage } from '../pages/AccessDeniedPage'
 import { AdminSectionPage } from '../pages/AdminSectionPage'
 import { AdminVoucherFormPage } from '../pages/AdminVoucherFormPage'
 import { AdminVoucherListPage } from '../pages/AdminVoucherListPage'
+import { AdminDashboardPage } from '../pages/AdminDashboardPage'
 import { AdminReviewsPage } from '../pages/AdminReviewsPage'
 import { CheckoutPage } from '../pages/CheckoutPage'
 import { HomePage } from '../pages/HomePage'
@@ -28,7 +29,7 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
         <Route element={<AdminLayout />} path="/admin">
           <Route element={<Navigate replace to="dashboard" />} index />
-          <Route element={<AdminSectionPage />} path="dashboard" />
+          <Route element={<AdminDashboardPage />} path="dashboard" />
           <Route element={<AdminSectionPage />} path="orders" />
           <Route element={<AdminVoucherListPage />} path="vouchers" />
           <Route element={<AdminVoucherFormPage />} path="vouchers/new" />

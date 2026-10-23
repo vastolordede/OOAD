@@ -1274,6 +1274,90 @@
   justify-self: start;
 }
 
+.admin-dashboard-page {
+  min-height: auto;
+}
+
+.admin-dashboard-page > .section-heading h1 {
+  color: #18263b;
+  font-size: 26px;
+  margin: 0;
+}
+
+.dashboard-cards {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 22px 0;
+}
+
+.dashboard-card {
+  background: #fff;
+  border: 1px solid #e0e6ee;
+  border-radius: 9px;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 18px;
+}
+
+.dashboard-card span {
+  color: #657286;
+  font-size: 12px;
+}
+
+.dashboard-card strong {
+  color: #18263b;
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-widgets {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.25fr);
+}
+
+.dashboard-widget {
+  background: #fff;
+  border: 1px solid #e0e6ee;
+  border-radius: 9px;
+  min-width: 0;
+  padding: 20px;
+}
+
+.dashboard-widget h2 {
+  color: #18263b;
+  font-size: 17px;
+  margin: 0;
+}
+
+.dashboard-widget .section-heading {
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.status-counts {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.status-count {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.status-count > strong {
+  color: #253044;
+  font-size: 14px;
+}
+
+.stock-warning {
+  color: #a32920;
+}
+
 @media (max-width: 760px) {
   .admin-shell {
     display: block;
@@ -1350,6 +1434,14 @@
 
   .product-photo {
     min-height: 220px;
+  }
+
+  .dashboard-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-widgets {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1434,5 +1526,9 @@
   .voucher-filters input,
   .voucher-filters select {
     width: 100%;
+  }
+
+  .dashboard-cards {
+    grid-template-columns: 1fr;
   }
 }
