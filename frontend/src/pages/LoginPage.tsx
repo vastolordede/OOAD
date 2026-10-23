@@ -1,26 +1,27 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useToast } from '../hooks/useToast'
 import { getErrorMessage } from '../utils/getErrorMessage'
 
 export function LoginPage() {
   const { login } = useAuth()
+  const toast = useToast()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError(null)
     setIsSubmitting(true)
 
     try {
       const role = await login({ email, password })
+      toast.success('Signed in successfully.')
       navigate(role === 'ADMIN' ? '/admin/dashboard' : '/', { replace: true })
     } catch (loginError) {
-      setError(getErrorMessage(loginError))
+      toast.error(getErrorMessage(loginError))
     } finally {
       setIsSubmitting(false)
     }
@@ -54,11 +55,6 @@ export function LoginPage() {
             type="password"
             value={password}
           />
-          {error && (
-            <p className="form-error" role="alert">
-              {error}
-            </p>
-          )}
           <button className="button button-primary button-full" disabled={isSubmitting} type="submit">
             {isSubmitting ? 'Signing in…' : 'Sign in'}
           </button>

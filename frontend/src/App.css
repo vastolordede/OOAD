@@ -249,6 +249,57 @@
   margin-top: 16px;
 }
 
+.toast-viewport {
+  display: grid;
+  gap: 10px;
+  max-width: min(420px, calc(100vw - 32px));
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  z-index: 1000;
+}
+
+.toast {
+  align-items: flex-start;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgb(25 42 70 / 16%);
+  display: flex;
+  font-size: 14px;
+  gap: 16px;
+  justify-content: space-between;
+  line-height: 1.45;
+  padding: 13px 14px;
+}
+
+.toast-success {
+  background: #eef8f0;
+  border-color: #b6dfbd;
+  color: #1f6730;
+}
+
+.toast-error {
+  background: #fff1f0;
+  border-color: #f0c3bf;
+  color: #a32920;
+}
+
+.toast-info {
+  background: #edf4fc;
+  border-color: #c2d8f0;
+  color: #224e83;
+}
+
+.toast-dismiss {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0 1px;
+}
+
 @media (max-width: 760px) {
   .admin-shell {
     display: block;
@@ -292,6 +343,11 @@
 
   .admin-content {
     padding: 22px 16px;
+  }
+
+  .toast-viewport {
+    right: 12px;
+    top: 12px;
   }
 }
 
