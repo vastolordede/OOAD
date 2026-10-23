@@ -7,6 +7,7 @@ import { AdminVoucherListPage } from '../pages/AdminVoucherListPage'
 import { AdminDashboardPage } from '../pages/AdminDashboardPage'
 import { AdminReviewsPage } from '../pages/AdminReviewsPage'
 import { CheckoutPage } from '../pages/CheckoutPage'
+import { CartPage } from '../pages/CartPage'
 import { HomePage } from '../pages/HomePage'
 import { LoginPage } from '../pages/LoginPage'
 import { MyOrdersPage } from '../pages/MyOrdersPage'
@@ -22,6 +23,7 @@ export function AppRoutes() {
       <Route element={<AccessDeniedPage />} path="/access-denied" />
       <Route element={<ProductDetailPage />} path="/products/:productId" />
       <Route element={<ProtectedRoute requiredRole="CUSTOMER" />}>
+        <Route element={<CartPage />} path="/cart" />
         <Route element={<CheckoutPage />} path="/checkout" />
         <Route element={<MyOrdersPage />} path="/my-orders" />
         <Route element={<OrderDetailPage />} path="/my-orders/:orderId" />

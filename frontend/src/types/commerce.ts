@@ -22,6 +22,15 @@ export interface CartResponse {
   hasUnavailableItems: boolean
 }
 
+export interface AddCartItemRequest {
+  variantId: number
+  quantity: number
+}
+
+export interface UpdateCartItemRequest {
+  quantity: number
+}
+
 export interface AddressResponse {
   id: number
   receiverName: string

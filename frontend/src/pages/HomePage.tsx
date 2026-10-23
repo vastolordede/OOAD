@@ -32,6 +32,9 @@ export function HomePage() {
         )}
         {user.role === 'CUSTOMER' && (
           <>
+            <Link className="button button-secondary button-link" to="/cart">
+              View cart
+            </Link>
             <Link className="button button-primary button-link" to="/checkout">
               Go to checkout
             </Link>
