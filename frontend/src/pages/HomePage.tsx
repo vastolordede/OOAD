@@ -31,9 +31,14 @@ export function HomePage() {
           </Link>
         )}
         {user.role === 'CUSTOMER' && (
-          <Link className="button button-primary button-link" to="/checkout">
-            Go to checkout
-          </Link>
+          <>
+            <Link className="button button-primary button-link" to="/checkout">
+              Go to checkout
+            </Link>
+            <Link className="button button-secondary button-link" to="/my-orders">
+              View my orders
+            </Link>
+          </>
         )}
         <button className="button button-secondary button-full" onClick={logout} type="button">
           Sign out

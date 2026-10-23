@@ -96,6 +96,19 @@ export interface OrderItemResponse {
   lineTotal: number
 }
 
+export interface OrderSummaryResponse {
+  id: number
+  status: OrderStatus
+  receiverName: string
+  customerEmail: string
+  itemCount: number
+  firstItemName: string | null
+  totalAmount: number
+  paymentMethod: PaymentMethod
+  paymentStatus: PaymentStatus
+  createdAt: string
+}
+
 export interface OrderResponse {
   id: number
   status: OrderStatus

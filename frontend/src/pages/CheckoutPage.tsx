@@ -239,8 +239,8 @@ export function CheckoutPage() {
             Order <strong>#{createdOrder.id}</strong> is now {createdOrder.status.toLowerCase()}.
           </p>
           <p>Total: <strong>{formatCurrency(createdOrder.totalAmount)}</strong></p>
-          <Link className="button button-primary button-link" to="/">
-            Continue shopping
+          <Link className="button button-primary button-link" to={`/my-orders/${createdOrder.id}`}>
+            View order details
           </Link>
         </section>
       </main>

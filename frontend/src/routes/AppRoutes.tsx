@@ -5,6 +5,8 @@ import { AdminSectionPage } from '../pages/AdminSectionPage'
 import { CheckoutPage } from '../pages/CheckoutPage'
 import { HomePage } from '../pages/HomePage'
 import { LoginPage } from '../pages/LoginPage'
+import { MyOrdersPage } from '../pages/MyOrdersPage'
+import { OrderDetailPage } from '../pages/OrderDetailPage'
 import { ProtectedRoute } from './ProtectedRoute'
 
 export function AppRoutes() {
@@ -15,6 +17,8 @@ export function AppRoutes() {
       <Route element={<AccessDeniedPage />} path="/access-denied" />
       <Route element={<ProtectedRoute requiredRole="CUSTOMER" />}>
         <Route element={<CheckoutPage />} path="/checkout" />
+        <Route element={<MyOrdersPage />} path="/my-orders" />
+        <Route element={<OrderDetailPage />} path="/my-orders/:orderId" />
       </Route>
       <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
         <Route element={<AdminLayout />} path="/admin">
