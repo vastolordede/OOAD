@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AdminLayout } from '../components/common/AdminLayout'
 import { AccessDeniedPage } from '../pages/AccessDeniedPage'
 import { AdminSectionPage } from '../pages/AdminSectionPage'
+import { AdminVoucherFormPage } from '../pages/AdminVoucherFormPage'
+import { AdminVoucherListPage } from '../pages/AdminVoucherListPage'
 import { CheckoutPage } from '../pages/CheckoutPage'
 import { HomePage } from '../pages/HomePage'
 import { LoginPage } from '../pages/LoginPage'
@@ -25,7 +27,9 @@ export function AppRoutes() {
           <Route element={<Navigate replace to="dashboard" />} index />
           <Route element={<AdminSectionPage />} path="dashboard" />
           <Route element={<AdminSectionPage />} path="orders" />
-          <Route element={<AdminSectionPage />} path="vouchers" />
+          <Route element={<AdminVoucherListPage />} path="vouchers" />
+          <Route element={<AdminVoucherFormPage />} path="vouchers/new" />
+          <Route element={<AdminVoucherFormPage />} path="vouchers/:voucherId/edit" />
           <Route element={<AdminSectionPage />} path="reviews" />
         </Route>
       </Route>
