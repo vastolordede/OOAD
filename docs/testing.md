@@ -52,8 +52,13 @@ Chạy một lớp integration test khác bằng cách thay bộ lọc `--tests`
 | O45 Invalid Order Status Transition | `CheckoutOrderIntegrationTest`, `OrderStatusTest`, `OrderServiceTest` |
 | O47 Hai request mua vượt Stock | `CheckoutOrderIntegrationTest` (8 người tranh 3 sản phẩm, 2 người tranh 1 lượt voucher, bấm đặt hai lần) |
 | V16 Voucher Business Rules | `VoucherCheckoutIntegrationTest`, `VoucherServiceTest`, `OrderPricingTest` |
+| V05–V12 Voucher Rule Coverage | Ma trận cụ thể ở mục 5; gồm kiểm tra ngày/giá trị, giới hạn, làm tròn, ghi nhận, hủy và dùng lại |
 | R14 Review Eligibility và Rating | `ReviewIntegrationTest`, `ReviewServiceTest` |
 | DB14 Dashboard Query | `DashboardIntegrationTest`, `DashboardServiceTest` |
+| DB09 Low-stock API | `GET /api/admin/inventory/low-stock`; covered by `DashboardIntegrationTest` |
+| DB10–DB11 Revenue and top-products APIs | `GET /api/admin/dashboard/revenue` and `/api/admin/dashboard/top-products`; covered by `DashboardIntegrationTest` |
+| O25–O30 Admin Order HTTP | `DemoFlowApiIntegrationTest` (401/403, list/filter/detail, chuyển trạng thái, COD PAID, hủy hoàn kho) |
+| DEP07 Demo seed integrity | `DemoSeedIntegrationTest` (database riêng, profile `demo`) |
 | T15 Database constraints và invalid data | `DatabaseConstraintsIntegrationTest` |
 | T11 Regression Backend | Toàn bộ test trên, cộng `DemoFlowApiIntegrationTest` |
 
@@ -66,7 +71,7 @@ Frontend hiện chưa có test runner riêng; các bước dưới đây là ki�
 | Việc | Luồng kiểm tra | Kết quả mong đợi |
 |---|---|---|
 | T05 | Customer đăng nhập → mở `/products/{id}` → thêm variant vào cart → cập nhật số lượng → checkout → tạo order COD | Cart/checkout hiển thị dữ liệu backend; giá và tồn kho được backend xác nhận; tạo đơn không gửi lặp |
-| T06 | Admin cập nhật trạng thái đơn → Customer tải lại My Orders | Chưa thể kiểm thử qua UI: repo hiện không có `AdminOrderController`, dù `OrderService` có logic admin. Không tự đoán endpoint |
+| T06 | Admin cập nhật trạng thái đơn → Customer tải lại My Orders | Admin API `PATCH /api/admin/orders/{id}/status` đã được bổ sung; xác minh UI gọi API và tải lại trạng thái đơn |
 | T07 | Hủy đơn PENDING/CONFIRMED trong Order Detail; kiểm tra stock sau đó | UI xác nhận trước khi hủy, trạng thái được tải lại; kiểm tra tồn kho khôi phục bằng backend/integration test |
 | T08 | Checkout nhập voucher hợp lệ, voucher sai, gỡ voucher | Preview backend cập nhật tổng; mã sai báo lỗi; gỡ mã gọi preview không có voucher |
 | T09 | Dùng đơn DELIVERED chưa review để gửi rating 1–5; thử gửi trùng OrderItem | Form chỉ xuất hiện cho DELIVERED; gửi trùng/rating không hợp lệ hiển thị lỗi backend |
@@ -79,7 +84,39 @@ Ghi lại API response/lỗi và bước tái hiện khi test lỗi. Dùng dữ 
 
 Các màn hình O36 (Create Order), R13 (Admin Review Moderation) và DB09 (Low Stock Widget) đã được triển khai trong code trước đó, dù một số dòng sheet đang hiển thị `Chưa Bắt Đầu`. Hash tham chiếu lần lượt là `cd1eb12`, `4052afc`, `583e25c`; hãy xác minh trạng thái sheet thay vì tạo lại.
 
-O40–O42/T06 vẫn bị chặn do chưa có Admin Order controller/HTTP contract. DB12–DB13 chưa thể tích hợp vì Dashboard API hiện không trả dữ liệu chuỗi doanh thu hoặc top-selling products. O49 là mô phỏng, không thay thế cổng thanh toán thật.
+O40–O42/T06 không còn bị chặn bởi backend: Admin Order HTTP API đã có list/filter/detail/status, và Dashboard API có `/api/admin/dashboard/revenue` cùng `/api/admin/dashboard/top-products`. Vẫn cần chạy regression UI để xác nhận frontend tích hợp hai bề mặt này. O49 là mô phỏng, không thay thế cổng thanh toán thật.
+
+Hợp đồng chi tiết và các bề mặt FE chưa được hỗ trợ được ghi trong [api-contract-admin](api-contract-admin.md).
+
+### Kiểm tra CORS preflight cho Admin Order PATCH
+
+`backend/.env.example` cấu hình `CORS_ALLOWED_ORIGINS=http://localhost:5173`; `application.properties` lấy giá trị này với mặc định cùng origin. `SecurityConfig` cho phép `GET, POST, PUT, PATCH, DELETE, OPTIONS` và các header `Authorization`, `Content-Type`, `Accept`.
+
+Khi backend đang chạy, gửi preflight từ PowerShell (hoặc `curl.exe`):
+
+```powershell
+curl.exe -i -X OPTIONS "http://localhost:8080/api/admin/orders/1/status" `
+  -H "Origin: http://localhost:5173" `
+  -H "Access-Control-Request-Method: PATCH" `
+  -H "Access-Control-Request-Headers: authorization,content-type"
+```
+
+Kết quả cần là HTTP thành công cho preflight và có `Access-Control-Allow-Origin: http://localhost:5173`, `Access-Control-Allow-Methods` chứa `PATCH`, cùng `Access-Control-Allow-Headers` cho `authorization` và `content-type`. Nếu thay origin, cập nhật `CORS_ALLOWED_ORIGINS` trong `backend/.env`.
+
+### Voucher rule matrix (V05–V12)
+
+| Rule | Coverage |
+|---|---|
+| V05 – start date phải trước end date | `VoucherServiceTest.createRejectsStartDateNotBeforeEndDate`; database check trong `DatabaseConstraintsIntegrationTest` |
+| V06 – voucher phải ACTIVE và nằm trong thời hạn | `VoucherServiceTest.validateRejectsInactiveVoucher`, `VoucherServiceTest.validateRejectsVoucherThatHasNotStarted`, `VoucherServiceTest.validateRejectsExpiredVoucher`; HTTP/integration: `VoucherCheckoutIntegrationTest.inactiveVoucherIsRejected`, `VoucherCheckoutIntegrationTest.voucherThatHasNotStartedYetIsRejected`, `VoucherCheckoutIntegrationTest.expiredVoucherIsRejected` |
+| V07 – subtotal đạt minimum | `VoucherServiceTest.validateRejectsOrderBelowMinimumValue`, `VoucherServiceTest.validateAcceptsSubtotalEqualToMinimumOrderValue`; integration: `VoucherCheckoutIntegrationTest.orderBelowTheMinimumValueIsRejectedWithoutSideEffects` |
+| V08 – usage limit | `VoucherServiceTest.validateRejectsWhenUsageLimitReached`, `VoucherServiceTest.validateAcceptsVoucherWithOneUseRemaining`, `VoucherServiceTest.validateAcceptsVoucherWithoutUsageLimit`, `VoucherServiceTest.updateAcceptsUsageLimitEqualToAlreadyUsedCount`; integration: `VoucherCheckoutIntegrationTest.voucherWithUsageLimitIsRejectedOnceTheLimitIsReached`, `DemoFlowApiIntegrationTest.concurrentCheckoutRequestsByOneCustomerUseTheSameVoucherOnlyOnce` |
+| V09 – percentage discount and 100% boundary | `VoucherServiceTest.createAcceptsPercentageDiscountOfExactlyOneHundred`, `OrderPricingTest.percentageDiscountIsComputedFromSubtotal`, `OrderPricingTest.percentageDiscountIsRoundedToTwoDecimals`, `OrderPricingTest.percentageDiscountRoundsHalfUpAtHalfACent` |
+| V10 – percentage max discount | `OrderPricingTest.percentageDiscountIsCappedByMaxDiscount`, `OrderPricingTest.percentageDiscountCanEqualMaxDiscount`, `OrderPricingTest.percentageDiscountIsNotCappedWhenMaxDiscountIsNull` |
+| V11 – fixed discount không vượt subtotal | `OrderPricingTest.fixedDiscountReturnsExactValue`, `OrderPricingTest.fixedDiscountNeverExceedsSubtotal`, `OrderPricingTest.fixedDiscountCanEqualSubtotal` |
+| V12 – ghi nhận/hoàn lượt dùng | `VoucherServiceTest.recordUsageSavesUsageWhenCounterIncreased`, `VoucherServiceTest.recordUsageRejectsWhenCounterCouldNotBeIncreased`, `VoucherServiceTest.releaseUsageDecreasesCounterAndDeletesUsageWhenUsageExists`, `VoucherServiceTest.releaseUsageDoesNothingWhenUsageDoesNotExist`; integration: `VoucherCheckoutIntegrationTest.percentageVoucherIsCappedByMaxDiscountAndUsageIsRecorded`, `VoucherCheckoutIntegrationTest.cancellingAnOrderReleasesVoucherUsageSoTheCustomerCanUseItAgain` |
+
+`DemoSeedIntegrationTest` uses a separate demo test database, not the destructive database used by `IntegrationTestBase`. See [database.md](database.md) for setup and profile commands.
 
 ## 6. Khi test lỗi
 

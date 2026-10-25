@@ -115,6 +115,35 @@ class VoucherServiceTest {
     }
 
     @Test
+    void validateAcceptsSubtotalEqualToMinimumOrderValue() {
+        Voucher voucher = validVoucher();
+        voucher.setMinOrderValue(SUBTOTAL);
+        when(voucherRepository.findByCodeIgnoreCase("SALE10")).thenReturn(Optional.of(voucher));
+
+        assertThat(service.validateForCheckout("SALE10", 1L, SUBTOTAL)).isSameAs(voucher);
+    }
+
+    @Test
+    void validateAcceptsVoucherWithOneUseRemaining() {
+        Voucher voucher = validVoucher();
+        voucher.setUsageLimit(5);
+        voucher.setUsedCount(4);
+        when(voucherRepository.findByCodeIgnoreCase("SALE10")).thenReturn(Optional.of(voucher));
+
+        assertThat(service.validateForCheckout("SALE10", 1L, SUBTOTAL)).isSameAs(voucher);
+    }
+
+    @Test
+    void validateAcceptsVoucherWithoutUsageLimit() {
+        Voucher voucher = validVoucher();
+        voucher.setUsageLimit(null);
+        voucher.setUsedCount(100);
+        when(voucherRepository.findByCodeIgnoreCase("SALE10")).thenReturn(Optional.of(voucher));
+
+        assertThat(service.validateForCheckout("SALE10", 1L, SUBTOTAL)).isSameAs(voucher);
+    }
+
+    @Test
     void validateRejectsOrderBelowMinimumValue() {
         Voucher voucher = validVoucher();
         voucher.setMinOrderValue(new BigDecimal("300000.00"));
@@ -175,6 +204,16 @@ class VoucherServiceTest {
     }
 
     @Test
+    void createAcceptsPercentageDiscountOfExactlyOneHundred() {
+        VoucherResponse response = service.create(request(
+                "SALE100", DiscountType.PERCENTAGE, "100", null,
+                Instant.now(), Instant.now().plusSeconds(3600)
+        ));
+
+        assertThat(response.discountValue()).isEqualByComparingTo("100");
+    }
+
+    @Test
     void createNormalizesCodeAndDropsMaxDiscountForFixedVoucher() {
         VoucherResponse response = service.create(request(
                 "  sale10 ", DiscountType.FIXED, "10000", "5000",
@@ -206,6 +245,21 @@ class VoucherServiceTest {
                 );
     }
 
+    @Test
+    void updateAcceptsUsageLimitEqualToAlreadyUsedCount() {
+        Voucher voucher = validVoucher();
+        voucher.setUsedCount(5);
+        when(voucherRepository.findById(7L)).thenReturn(Optional.of(voucher));
+
+        VoucherResponse response = service.update(7L, new VoucherRequest(
+                "SALE10", null, DiscountType.FIXED,
+                new BigDecimal("10000"), null, null, 5,
+                Instant.now(), Instant.now().plusSeconds(3600)
+        ));
+
+        assertThat(response.usageLimit()).isEqualTo(5);
+    }
+
     // ---------------- recordUsage ----------------
 
     @Test
@@ -231,6 +285,33 @@ class VoucherServiceTest {
                 .hasMessage("Voucher usage limit reached");
 
         verify(usageRepository, never()).save(any());
+    }
+
+    @Test
+    void releaseUsageDecreasesCounterAndDeletesUsageWhenUsageExists() {
+        Order order = new Order();
+        ReflectionTestUtils.setField(order, "id", 12L);
+        Voucher voucher = validVoucher();
+        VoucherUsage usage = new VoucherUsage();
+        usage.setVoucher(voucher);
+        when(usageRepository.findByOrderId(12L)).thenReturn(Optional.of(usage));
+
+        service.releaseUsage(order);
+
+        verify(voucherRepository).decreaseUsedCount(eq(7L), any(Instant.class));
+        verify(usageRepository).delete(usage);
+    }
+
+    @Test
+    void releaseUsageDoesNothingWhenUsageDoesNotExist() {
+        Order order = new Order();
+        ReflectionTestUtils.setField(order, "id", 12L);
+        when(usageRepository.findByOrderId(12L)).thenReturn(Optional.empty());
+
+        service.releaseUsage(order);
+
+        verify(voucherRepository, never()).decreaseUsedCount(any(), any());
+        verify(usageRepository, never()).delete(any(VoucherUsage.class));
     }
 
     // ---------------- helpers ----------------

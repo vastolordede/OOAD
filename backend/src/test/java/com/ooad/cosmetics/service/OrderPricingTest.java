@@ -64,6 +64,38 @@ class OrderPricingTest {
     }
 
     @Test
+    void percentageDiscountCanEqualMaxDiscount() {
+        Voucher voucher = voucher(DiscountType.PERCENTAGE, "10.00", "10000.00");
+
+        assertThat(OrderPricing.discount(voucher, new BigDecimal("100000.00")))
+                .isEqualByComparingTo(new BigDecimal("10000"));
+    }
+
+    @Test
+    void percentageDiscountIsNotCappedWhenMaxDiscountIsNull() {
+        Voucher voucher = voucher(DiscountType.PERCENTAGE, "10.00", null);
+
+        assertThat(OrderPricing.discount(voucher, new BigDecimal("100000.00")))
+                .isEqualByComparingTo(new BigDecimal("10000"));
+    }
+
+    @Test
+    void fixedDiscountCanEqualSubtotal() {
+        Voucher voucher = voucher(DiscountType.FIXED, "200000.00", null);
+
+        assertThat(OrderPricing.discount(voucher, new BigDecimal("200000.00")))
+                .isEqualByComparingTo(new BigDecimal("200000"));
+    }
+
+    @Test
+    void percentageDiscountRoundsHalfUpAtHalfACent() {
+        Voucher voucher = voucher(DiscountType.PERCENTAGE, "0.50", null);
+
+        assertThat(OrderPricing.discount(voucher, new BigDecimal("1.00")))
+                .isEqualByComparingTo(new BigDecimal("0.01"));
+    }
+
+    @Test
     void totalIsSubtotalPlusShippingMinusDiscount() {
         BigDecimal total = OrderPricing.total(
                 new BigDecimal("200000.00"),

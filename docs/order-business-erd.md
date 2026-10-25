@@ -4,6 +4,7 @@ Phạm vi: Cart, Checkout, Order, Payment, Voucher, Review, Wishlist.
 Các bảng `users`, `products`, `product_variants` đã có từ migration V2–V3 (Account + Catalog), ở đây chỉ vẽ các cột cần cho quan hệ.
 
 Migration tương ứng: `V5__cart_schema.sql`, `V6__voucher_schema.sql`, `V7__order_payment_schema.sql`, `V8__review_schema.sql`, `V9__wishlist_schema.sql`.
+Data dictionary đầy đủ, gồm cả Account và Catalog, nằm trong [database.md](database.md).
 
 > Ghi chú: kiểu tiền là `NUMERIC(14,2)` (VND), thời gian là `TIMESTAMPTZ`. Trong sơ đồ chỉ ghi `NUMERIC` cho gọn.
 
@@ -11,16 +12,16 @@ Migration tương ứng: `V5__cart_schema.sql`, `V6__voucher_schema.sql`, `V7__o
 
 ```mermaid
 erDiagram
-    USERS ||--o| CARTS : "có tối đa 1 giỏ ACTIVE"
+    USERS ||--o{ CARTS : "có lịch sử giỏ; tối đa 1 ACTIVE"
     CARTS ||--o{ CART_ITEMS : "chứa"
     PRODUCT_VARIANTS ||--o{ CART_ITEMS : "được thêm vào giỏ"
 
     USERS ||--o{ ORDERS : "đặt"
-    ORDERS ||--|{ ORDER_ITEMS : "gồm"
+    ORDERS ||--o{ ORDER_ITEMS : "gồm"
     PRODUCT_VARIANTS ||--o{ ORDER_ITEMS : "snapshot từ"
-    ORDERS ||--|| PAYMENTS : "được thanh toán bằng"
+    ORDERS ||--o| PAYMENTS : "được thanh toán bằng"
 
-    VOUCHERS ||--o{ ORDERS : "áp dụng cho"
+    VOUCHERS o|--o{ ORDERS : "áp dụng cho"
     VOUCHERS ||--o{ VOUCHER_USAGES : "có lịch sử dùng"
     USERS ||--o{ VOUCHER_USAGES : "đã dùng"
     ORDERS ||--o| VOUCHER_USAGES : "ghi nhận"
@@ -195,6 +196,7 @@ erDiagram
 - Không cho Customer hủy đơn đang `SHIPPING` hoặc `DELIVERED`; mọi chuyển trạng thái khác đều bị từ chối.
 - Hủy đơn thì hoàn tồn kho và hoàn lượt dùng voucher.
 - Khi chuyển sang `DELIVERED` thì ghi `delivered_at`; thanh toán COD tự chuyển `PAID`.
+- Khi xác nhận đơn `ONLINE`, khoản thanh toán phải ở trạng thái `PAID`.
 
 ### Thanh toán
 - CORE: COD. Đơn mới có `payment.status = PENDING`, khi giao thành công chuyển sang `PAID`.
