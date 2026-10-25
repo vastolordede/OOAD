@@ -27,6 +27,31 @@ Frontend routes, API layering, and the current integration gap are documented in
 
 Schema changes are managed by Flyway migrations in `backend/src/main/resources/db/migration/`.
 
+## Temporary demo database
+
+The demo dataset is isolated in the `demo` profile; normal and test profiles do not load it.
+All seeded accounts use the temporary password `DemoOnly123!`:
+
+- Admin: `admin@ooad.demo`
+- Customers: `anh@ooad.demo`, `minh@ooad.demo`, `linh@ooad.demo`
+
+From `backend/`, point `DB_URL` to a dedicated demo database and start the profile:
+
+```powershell
+$env:DB_URL = "jdbc:postgresql://localhost:5432/ooad_cosmetics_demo"
+.\gradlew.bat bootRun --args="--spring.profiles.active=demo"
+```
+
+To reset only that demo database, run these commands from a PostgreSQL-capable terminal,
+then start the app with the demo profile again so Flyway recreates the schema and seed:
+
+```powershell
+psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS ooad_cosmetics_demo WITH (FORCE);"
+psql -U postgres -d postgres -c "CREATE DATABASE ooad_cosmetics_demo;"
+```
+
+The seed is temporary and should be replaced with Đặng's canonical demo data when available.
+
 ## Project documents
 
 - [Order & business wireframes](docs/frontend-order-business-wireframes.svg)

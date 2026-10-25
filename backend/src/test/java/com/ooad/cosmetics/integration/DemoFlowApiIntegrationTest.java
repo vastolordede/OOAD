@@ -25,6 +25,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,6 +59,7 @@ class DemoFlowApiIntegrationTest extends IntegrationTestBase {
         call(get("/api/cart"), null, null, 401);
         call(post("/api/orders"), null, null, 401);
         call(get("/api/cart"), "this.is.not-a-valid-token", null, 401);
+        call(get("/api/admin/orders"), null, null, 401);
 
         String customerToken = register("shopper@example.com");
         call(get("/api/cart"), customerToken, null, 200);
@@ -139,10 +142,10 @@ class DemoFlowApiIntegrationTest extends IntegrationTestBase {
         call(get("/api/orders/{id}", orderId), customerToken, null, 200);
 
         // 7. Admin đưa đơn qua từng bước; nhảy bước bị từ chối
-        call(put("/api/admin/orders/{id}/status", orderId), adminToken,
+        call(patch("/api/admin/orders/{id}/status", orderId), adminToken,
                 new UpdateOrderStatusRequest(OrderStatus.DELIVERED), 400);
         for (OrderStatus next : List.of(OrderStatus.CONFIRMED, OrderStatus.SHIPPING, OrderStatus.DELIVERED)) {
-            JsonNode updated = call(put("/api/admin/orders/{id}/status", orderId), adminToken,
+            JsonNode updated = call(patch("/api/admin/orders/{id}/status", orderId), adminToken,
                     new UpdateOrderStatusRequest(next), 200);
             assertThat(updated.path("data").path("status").asText()).isEqualTo(next.name());
         }
@@ -172,6 +175,95 @@ class DemoFlowApiIntegrationTest extends IntegrationTestBase {
 
         JsonNode adminOrders = call(get("/api/admin/orders?status=DELIVERED"), adminToken, null, 200);
         assertThat(adminOrders.path("data").path("totalElements").asLong()).isEqualTo(1);
+        String businessDate = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh")).toString();
+        JsonNode filteredOrders = call(get("/api/admin/orders")
+                .param("keyword", "shopper@example.com")
+                .param("fromDate", businessDate)
+                .param("toDate", businessDate), adminToken, null, 200);
+        assertThat(filteredOrders.path("data").path("content").size()).isEqualTo(1);
+        JsonNode adminDetail = call(get("/api/admin/orders/{id}", orderId), adminToken, null, 200);
+        assertThat(adminDetail.path("data").path("customerEmail").asText())
+                .isEqualTo("shopper@example.com");
+    }
+
+    @Test
+    void adminCancellationRestoresStock() throws Exception {
+        long variantId = createVariant("200000.00", 5);
+        createAdmin("admin@example.com");
+        String customerToken = register("shopper@example.com");
+        String adminToken = login("admin@example.com");
+
+        JsonNode address = call(post("/api/users/me/addresses"), customerToken,
+                new AddressRequest("Nguyen Van A", "0900000000", "1 Le Loi", null, null, "Ho Chi Minh", true),
+                201);
+        long addressId = address.path("data").path("id").asLong();
+        call(post("/api/cart/items"), customerToken, new AddCartItemRequest(variantId, 2), 201);
+        JsonNode created = call(post("/api/orders"), customerToken,
+                new CreateOrderRequest(addressId, null, PaymentMethod.COD, null), 201);
+        long orderId = created.path("data").path("id").asLong();
+        assertThat(stockOf(variantId)).isEqualTo(3);
+
+        JsonNode cancelled = call(patch("/api/admin/orders/{id}/status", orderId),
+                adminToken, new UpdateOrderStatusRequest(OrderStatus.CANCELLED), 200);
+
+        assertThat(cancelled.path("data").path("status").asText()).isEqualTo("CANCELLED");
+        assertThat(stockOf(variantId)).isEqualTo(5);
+    }
+
+    @Test
+    void concurrentCheckoutRequestsByOneCustomerUseTheSameVoucherOnlyOnce() throws Exception {
+        long variantId = createVariant("200000.00", 10);
+        createVoucher("RACE", "FIXED", "10000");
+        String customerToken = register("shopper@example.com");
+
+        JsonNode address = call(post("/api/users/me/addresses"), customerToken,
+                new AddressRequest("Nguyen Van A", "0900000000", "1 Le Loi", null, null, "Ho Chi Minh", true),
+                201);
+        long addressId = address.path("data").path("id").asLong();
+        call(post("/api/cart/items"), customerToken, new AddCartItemRequest(variantId, 1), 201);
+
+        String requestBody = objectMapper.writeValueAsString(
+                new CreateOrderRequest(addressId, "RACE", PaymentMethod.COD, null)
+        );
+        List<Object> outcomes = runConcurrently(List.of(
+                () -> mockMvc.perform(post("/api/orders")
+                        .header("Authorization", "Bearer " + customerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody)).andReturn(),
+                () -> mockMvc.perform(post("/api/orders")
+                        .header("Authorization", "Bearer " + customerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody)).andReturn()
+        ));
+        List<MvcResult> responses = outcomes.stream()
+                .map(outcome -> {
+                    assertThat(outcome).isInstanceOf(MvcResult.class);
+                    return (MvcResult) outcome;
+                })
+                .toList();
+
+        MvcResult winner = responses.stream()
+                .filter(result -> result.getResponse().getStatus() == 201)
+                .findFirst()
+                .orElseThrow();
+        MvcResult loser = responses.stream()
+                .filter(result -> result != winner)
+                .findFirst()
+                .orElseThrow();
+        JsonNode loserBody = objectMapper.readTree(loser.getResponse().getContentAsString());
+
+        System.out.printf(
+                "Concurrent checkout loser: HTTP %d, message=%s%n",
+                loser.getResponse().getStatus(),
+                loserBody.path("message").asText()
+        );
+        assertThat(loser.getResponse().getStatus()).as("losing request HTTP status").isIn(400, 409);
+        assertThat(loserBody.path("message").asText())
+                .as("losing request HTTP message")
+                .isNotBlank();
+        assertThat(count("SELECT COUNT(*) FROM orders")).isEqualTo(1);
+        assertThat(count("SELECT COUNT(*) FROM voucher_usages")).isEqualTo(1);
+        assertThat(count("SELECT used_count FROM vouchers WHERE code = 'RACE'")).isEqualTo(1);
     }
 
     @Test

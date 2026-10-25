@@ -4,8 +4,10 @@ import com.ooad.cosmetics.common.exception.BadRequestException;
 import com.ooad.cosmetics.dto.cart.AddCartItemRequest;
 import com.ooad.cosmetics.dto.order.CreateOrderRequest;
 import com.ooad.cosmetics.dto.order.OrderResponse;
+import com.ooad.cosmetics.entity.OrderStatus;
 import com.ooad.cosmetics.entity.PaymentMethod;
 import com.ooad.cosmetics.service.CheckoutService;
+import com.ooad.cosmetics.service.OrderService;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,9 @@ class VoucherCheckoutIntegrationTest extends IntegrationTestBase {
 
     @Autowired
     private CheckoutService checkoutService;
+
+    @Autowired
+    private OrderService orderService;
 
     private OrderResponse placeOrder(long addressId, String voucherCode) {
         return checkoutService.createOrder(
@@ -166,6 +171,29 @@ class VoucherCheckoutIntegrationTest extends IntegrationTestBase {
 
         assertThat(count("SELECT used_count FROM vouchers WHERE code = 'TWICE'")).isEqualTo(2);
         assertThat(stockOf(variantId)).isEqualTo(8);
+    }
+
+    @Test
+    void cancellingAnOrderReleasesVoucherUsageSoTheCustomerCanUseItAgain() {
+        long variantId = createVariant("100000.00", 5);
+        createVoucher("REUSE", "FIXED", "10000");
+        long addressId = prepareCustomerWithCart("buyer@example.com", variantId, 1);
+
+        OrderResponse firstOrder = placeOrder(addressId, "REUSE");
+        assertThat(count("SELECT used_count FROM vouchers WHERE code = 'REUSE'")).isEqualTo(1);
+        assertThat(count("SELECT COUNT(*) FROM voucher_usages")).isEqualTo(1);
+
+        orderService.updateStatus(firstOrder.id(), OrderStatus.CANCELLED);
+
+        assertThat(count("SELECT used_count FROM vouchers WHERE code = 'REUSE'")).isZero();
+        assertThat(count("SELECT COUNT(*) FROM voucher_usages")).isZero();
+
+        cartService.addItem(new AddCartItemRequest(variantId, 1));
+        OrderResponse secondOrder = placeOrder(addressId, "REUSE");
+
+        assertThat(secondOrder.voucherCode()).isEqualTo("REUSE");
+        assertThat(count("SELECT used_count FROM vouchers WHERE code = 'REUSE'")).isEqualTo(1);
+        assertThat(count("SELECT COUNT(*) FROM voucher_usages")).isEqualTo(1);
     }
 
     // ------------------------------------------------------------------
