@@ -46,10 +46,14 @@ public class AdminOrderController {
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size,
+            @Parameter(description = "Sort field: createdAt, totalAmount, status or id (default createdAt)")
+            @RequestParam(required = false) String sortBy,
+            @Parameter(description = "Sort direction: asc or desc (default desc)")
+            @RequestParam(required = false) String direction
     ) {
         return ApiResponse.success(orderService.adminList(
-                status, keyword, fromDate, toDate, page, size
+                status, keyword, fromDate, toDate, page, size, sortBy, direction
         ));
     }
 
