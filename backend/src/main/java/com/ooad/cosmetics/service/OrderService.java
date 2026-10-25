@@ -120,13 +120,21 @@ public class OrderService {
     /** O25: danh sách, tìm kiếm, lọc đơn hàng. */
     @Transactional(readOnly = true)
     public PageResponse<OrderSummaryResponse> adminList(
+            OrderStatus status, String q, LocalDate from, LocalDate to, int page, int size
+    ) {
+        return adminList(status, q, from, to, page, size, null, null);
+    }
+
+    public PageResponse<OrderSummaryResponse> adminList(
             OrderStatus status,
             String q,
             LocalDate from,
             LocalDate to,
             int page,
-            int size
-    ) {
+            int size,
+            String sortBy,
+            String direction
+    ){
         if (from != null && to != null && from.isAfter(to)) {
             throw new BadRequestException("from must not be after to");
         }
@@ -134,7 +142,7 @@ public class OrderService {
         Instant fromInstant = from == null ? null : from.atStartOfDay(BUSINESS_ZONE).toInstant();
         Instant toExclusive = to == null ? null : to.plusDays(1).atStartOfDay(BUSINESS_ZONE).toInstant();
 
-        PageRequest pageable = PageRequest.of(page, size, newestFirst());
+        PageRequest pageable = PageRequest.of(page, size, AdminOrderSort.resolve(sortBy, direction));
         Page<Order> orders = orderRepository.findAll(
                 OrderSpecifications.adminFilter(status, normalizeQuery(q), fromInstant, toExclusive),
                 pageable
