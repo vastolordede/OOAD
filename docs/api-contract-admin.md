@@ -25,7 +25,8 @@ Tài liệu này được đối chiếu với controller, DTO, service, `Securi
 | `toDate` | `LocalDate` | Không | — | `yyyy-MM-dd`, bao gồm trọn ngày này theo `Asia/Ho_Chi_Minh` |
 | `page` | integer | Không | `0` | `>= 0` |
 | `size` | integer | Không | `20` | `1..100` |
-| `sort` | — | — | — | **Chưa được controller hỗ trợ.** Kết quả hiện sắp `createdAt DESC`, rồi `id DESC`; truyền `sort` không đổi thứ tự. |
+| `sortBy` | string | Không | `createdAt` | Một trong `createdAt`, `totalAmount`, `status`, `id`; giá trị khác trả `400` |
+| `direction` | string | Không | `desc` | `asc` hoặc `desc` (không phân biệt hoa thường); giá trị khác trả `400` |
 
 - **Request body:** không có.
 - **Response mẫu:**
