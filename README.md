@@ -12,7 +12,7 @@ Repository structure:
 2. From `frontend/`, run `npm install` and `npm run dev`.
 3. Validate with `npm run build` and `npm run lint`.
 
-Frontend routes, API layering, and the current integration gap are documented in [frontend/README.md](frontend/README.md) and [docs/frontend-order-business-handoff.md](docs/frontend-order-business-handoff.md).
+Frontend routes and API integration are documented in [frontend/README.md](frontend/README.md). Wireframes and account/catalog/admin integration checks are available in [docs/frontend-account-catalog-wireframes.svg](docs/frontend-account-catalog-wireframes.svg) and [docs/frontend-account-catalog-admin-test-plan.md](docs/frontend-account-catalog-admin-test-plan.md).
 
 ## Local backend configuration
 
@@ -55,5 +55,7 @@ The seed is temporary and should be replaced with Đặng's canonical demo data 
 ## Project documents
 
 - [Order & business wireframes](docs/frontend-order-business-wireframes.svg)
+- [Account, catalog, and admin wireframes](docs/frontend-account-catalog-wireframes.svg)
+- [Account, catalog, and admin integration checks](docs/frontend-account-catalog-admin-test-plan.md)
 - [Frontend demo script](docs/frontend-order-business-demo.md)
 - [Cart, order, voucher, review, and dashboard tests](docs/testing.md)
