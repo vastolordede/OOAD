@@ -3,6 +3,11 @@ import { useAuth } from '../../hooks/useAuth'
 
 const navigationItems = [
   { label: 'Dashboard', to: '/admin/dashboard' },
+  { label: 'Users', to: '/admin/users' },
+  { label: 'Categories', to: '/admin/categories' },
+  { label: 'Brands', to: '/admin/brands' },
+  { label: 'Products', to: '/admin/products' },
+  { label: 'Inventory', to: '/admin/inventory' },
   { label: 'Orders', to: '/admin/orders' },
   { label: 'Vouchers', to: '/admin/vouchers' },
   { label: 'Reviews', to: '/admin/reviews' },
