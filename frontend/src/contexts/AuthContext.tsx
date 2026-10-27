@@ -1,7 +1,12 @@
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
-import { loginApi } from '../api/auth.api'
+import { loginApi, registerApi } from '../api/auth.api'
 import { AuthContext } from './auth-context'
-import type { LoginRequest, UserResponse, UserRole } from '../types/auth'
+import type {
+  LoginRequest,
+  RegisterRequest,
+  UserResponse,
+  UserRole,
+} from '../types/auth'
 
 function isUserResponse(value: unknown): value is UserResponse {
   if (typeof value !== 'object' || value === null) {
@@ -58,6 +63,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return response.user.role
   }, [])
 
+  const register = useCallback(async (payload: RegisterRequest): Promise<UserRole> => {
+    const response = await registerApi(payload)
+    localStorage.setItem('accessToken', response.accessToken)
+    localStorage.setItem('authUser', JSON.stringify(response.user))
+    setAccessToken(response.accessToken)
+    setUser(response.user)
+    return response.user.role
+  }, [])
+
   const logout = useCallback(() => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('authUser')
@@ -65,9 +79,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }, [])
 
+  const updateUserState = useCallback((updatedUser: UserResponse) => {
+    localStorage.setItem('authUser', JSON.stringify(updatedUser))
+    setUser(updatedUser)
+  }, [])
+
   const value = useMemo(
-    () => ({ accessToken, user, login, logout }),
-    [accessToken, user, login, logout],
+    () => ({ accessToken, user, login, register, logout, updateUserState }),
+    [accessToken, user, login, register, logout, updateUserState],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

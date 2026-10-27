@@ -23,3 +23,34 @@ export interface LoginRequest {
   email: string
   password: string
 }
+
+export interface RegisterRequest {
+  email: string
+  password: string
+  fullName: string
+  phone?: string
+}
+
+export interface ForgotPasswordRequest {
+  email: string
+}
+
+export interface ForgotPasswordResponse {
+  message: string
+  resetToken?: string | null
+}
+
+export interface ResetPasswordRequest {
+  token: string
+  newPassword: string
+}
+
+export interface UpdateProfileRequest {
+  fullName: string
+  phone?: string | null
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+}

@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1210" viewBox="0 0 1440 1210" role="img" aria-labelledby="title description">
+  <title id="title">Account, catalog, and admin product wireframes</title>
+  <desc id="description">Four low-fidelity screens for authentication, profile and addresses, public catalog and product detail, and admin inventory management.</desc>
+  <defs>
+    <style>
+      text { font-family: Arial, sans-serif; fill: #253044; }
+      .panel { fill: #fff; stroke: #9aa7b8; stroke-width: 2; }
+      .surface { fill: #f4f6f9; stroke: #b4bfcc; stroke-width: 1.5; }
+      .muted { fill: #657286; font-size: 14px; }
+      .label { font-size: 15px; font-weight: 600; }
+      .heading { font-size: 22px; font-weight: 700; }
+      .title { font-size: 30px; font-weight: 700; }
+      .button { fill: #e7edf5; stroke: #73849a; stroke-width: 1.5; }
+      .line { stroke: #c3ccd7; stroke-width: 1.5; }
+      .image { fill: #ece3e6; stroke: #c9b8be; stroke-width: 1.5; }
+    </style>
+  </defs>
+  <rect width="1440" height="1210" fill="#eef1f5"/>
+  <text x="48" y="54" class="title">Account &amp; Catalog — UI Wireframes</text>
+  <text x="48" y="82" class="muted">Low-fidelity layouts; labels represent backend-backed content and interaction states.</text>
+
+  <g transform="translate(48 112)">
+    <rect width="648" height="480" rx="10" class="panel"/>
+    <text x="24" y="40" class="heading">Login &amp; Register</text>
+    <text x="24" y="67" class="muted">Public account access</text>
+    <rect x="24" y="92" width="284" height="356" rx="8" class="surface"/>
+    <text x="44" y="124" class="label">Sign in</text>
+    <text x="44" y="158" class="muted">Email</text>
+    <rect x="44" y="168" width="244" height="38" rx="4" fill="#fff" stroke="#b4bfcc"/>
+    <text x="44" y="230" class="muted">Password</text>
+    <rect x="44" y="240" width="244" height="38" rx="4" fill="#fff" stroke="#b4bfcc"/>
+    <rect x="44" y="296" width="244" height="40" rx="5" class="button"/>
+    <text x="132" y="322" class="label">Sign in</text>
+    <text x="44" y="366" class="muted">Forgot password? · Create account</text>
+    <rect x="340" y="92" width="284" height="356" rx="8" class="surface"/>
+    <text x="360" y="124" class="label">Create account</text>
+    <text x="360" y="158" class="muted">Full name · Email · Phone</text>
+    <rect x="360" y="168" width="244" height="34" rx="4" fill="#fff" stroke="#b4bfcc"/>
+    <rect x="360" y="212" width="244" height="34" rx="4" fill="#fff" stroke="#b4bfcc"/>
+    <rect x="360" y="256" width="244" height="34" rx="4" fill="#fff" stroke="#b4bfcc"/>
+    <text x="360" y="314" class="muted">Password · Confirm password</text>
+    <rect x="360" y="326" width="244" height="34" rx="4" fill="#fff" stroke="#b4bfcc"/>
+    <rect x="360" y="376" width="244" height="40" rx="5" class="button"/>
+    <text x="430" y="402" class="label">Register</text>
+  </g>
+
+  <g transform="translate(744 112)">
+    <rect width="648" height="480" rx="10" class="panel"/>
+    <text x="24" y="40" class="heading">Profile &amp; Addresses</text>
+    <text x="24" y="67" class="muted">Signed-in customer account</text>
+    <rect x="24" y="92" width="286" height="350" rx="8" class="surface"/>
+    <text x="44" y="124" class="label">Personal information</text>
+    <text x="44" y="158" class="muted">Email · Role · Status</text>
+    <rect x="44" y="168" width="246" height="34" rx="4" fill="#fff" stroke="#b4bfcc"/>
+    <text x="44" y="226" class="muted">Full name · Phone</text>
+    <rect x="44" y="236" width="246" height="34" rx="4" fill="#fff" stroke="#b4bfcc"/>
+    <rect x="44" y="280" width="246" height="34" rx="4" fill="#fff" stroke="#b4bfcc"/>
+    <rect x="44" y="328" width="112" height="38" rx="5" class="button"/>
+    <text x="62" y="353" class="label">Save profile</text>
+    <text x="44" y="402" class="muted">Change password section</text>
+    <rect x="332" y="92" width="292" height="350" rx="8" class="surface"/>
+    <text x="352" y="124" class="label">Saved addresses</text>
+    <rect x="352" y="142" width="252" height="90" rx="5" fill="#fff" stroke="#b4bfcc"/>
+    <text x="368" y="168" class="label">Recipient · Default</text>
+    <text x="368" y="192" class="muted">Phone and delivery address</text>
+    <text x="368" y="216" class="muted">Edit · Set default · Delete</text>
+    <rect x="352" y="246" width="252" height="90" rx="5" fill="#fff" stroke="#b4bfcc"/>
+    <text x="368" y="274" class="label">Another saved address</text>
+    <text x="368" y="298" class="muted">Recipient · phone · address</text>
+    <rect x="352" y="354" width="252" height="40" rx="5" class="button"/>
+    <text x="416" y="380" class="label">Add address</text>
+  </g>
+
+  <g transform="translate(48 632)">
+    <rect width="648" height="520" rx="10" class="panel"/>
+    <text x="24" y="40" class="heading">Public Catalog &amp; Product Detail</text>
+    <rect x="24" y="62" width="600" height="46" rx="5" class="surface"/>
+    <text x="40" y="91" class="muted">Search · Category · Brand · Price range · Sort</text>
+    <rect x="24" y="124" width="600" height="192" rx="6" class="surface"/>
+    <rect x="42" y="142" width="144" height="128" rx="5" class="image"/>
+    <text x="208" y="164" class="label">Brand · Category</text>
+    <text x="208" y="194" class="heading">Product name</text>
+    <text x="208" y="226" class="muted">Description and price from product detail</text>
+    <rect x="208" y="244" width="132" height="40" rx="5" class="button"/>
+    <text x="232" y="270" class="label">Add to cart</text>
+    <text x="24" y="348" class="label">New arrivals product cards</text>
+    <g transform="translate(24 366)">
+      <rect width="184" height="112" rx="5" class="surface"/>
+      <rect x="10" y="10" width="56" height="56" rx="4" class="image"/>
+      <text x="76" y="34" class="label">Product card</text>
+      <text x="76" y="56" class="muted">Price · details</text>
+    </g>
+    <g transform="translate(232 366)">
+      <rect width="184" height="112" rx="5" class="surface"/>
+      <rect x="10" y="10" width="56" height="56" rx="4" class="image"/>
+      <text x="76" y="34" class="label">Product card</text>
+      <text x="76" y="56" class="muted">Price · details</text>
+    </g>
+    <g transform="translate(440 366)">
+      <rect width="184" height="112" rx="5" class="surface"/>
+      <rect x="10" y="10" width="56" height="56" rx="4" class="image"/>
+      <text x="76" y="34" class="label">Product card</text>
+      <text x="76" y="56" class="muted">Price · details</text>
+    </g>
+  </g>
+
+  <g transform="translate(744 632)">
+    <rect width="648" height="520" rx="10" class="panel"/>
+    <text x="24" y="40" class="heading">Admin Product &amp; Inventory</text>
+    <text x="24" y="68" class="muted">Product · variant · image · stock controls</text>
+    <rect x="24" y="90" width="600" height="46" rx="5" class="surface"/>
+    <text x="40" y="119" class="label">Product name · Category · Brand · Status</text>
+    <rect x="24" y="150" width="600" height="150" rx="5" class="surface"/>
+    <text x="42" y="178" class="label">Variants</text>
+    <text x="42" y="208" class="muted">SKU</text>
+    <text x="224" y="208" class="muted">Price</text>
+    <text x="330" y="208" class="muted">Stock</text>
+    <text x="430" y="208" class="muted">Status</text>
+    <text x="522" y="208" class="muted">Actions</text>
+    <line x1="42" y1="220" x2="606" y2="220" class="line"/>
+    <text x="42" y="250" class="label">Variant row</text>
+    <text x="224" y="250" class="muted">Price</text>
+    <text x="330" y="250" class="muted">Quantity</text>
+    <text x="430" y="250" class="muted">Active</text>
+    <text x="522" y="250" class="muted">Edit · Stock</text>
+    <rect x="24" y="314" width="292" height="156" rx="5" class="surface"/>
+    <text x="42" y="342" class="label">Product images</text>
+    <rect x="42" y="356" width="86" height="78" rx="4" class="image"/>
+    <rect x="142" y="356" width="86" height="78" rx="4" class="image"/>
+    <text x="238" y="382" class="muted">Upload / URL</text>
+    <text x="238" y="406" class="muted">Set primary</text>
+    <text x="238" y="430" class="muted">Delete</text>
+    <rect x="332" y="314" width="292" height="156" rx="5" class="surface"/>
+    <text x="350" y="342" class="label">Low-stock inventory</text>
+    <text x="350" y="374" class="muted">Threshold · SKU · current stock</text>
+    <rect x="350" y="388" width="256" height="34" rx="4" fill="#fff" stroke="#b4bfcc"/>
+    <rect x="350" y="430" width="136" height="30" rx="5" class="button"/>
+    <text x="370" y="451" class="label">Update stock</text>
+  </g>
+</svg>

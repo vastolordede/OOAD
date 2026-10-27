@@ -59,6 +59,10 @@ export function LoginPage() {
             {isSubmitting ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
+        <div className="auth-links">
+          <Link className="text-link" to="/register">Create an account</Link>
+          <Link className="text-link" to="/forgot-password">Forgot password?</Link>
+        </div>
       </section>
     </main>
   )
