@@ -30,10 +30,9 @@ Schema changes are managed by Flyway migrations in `backend/src/main/resources/d
 ## Temporary demo database
 
 The demo dataset is isolated in the `demo` profile; normal and test profiles do not load it.
-All seeded accounts use the temporary password `DemoOnly123!`:
-
-- Admin: `admin@ooad.demo`
-- Customers: `anh@ooad.demo`, `minh@ooad.demo`, `linh@ooad.demo`
+It contains synthetic users, orders, products, and vouchers for local demonstrations. Set up or
+reset disposable demo account credentials locally; never reuse production credentials or save
+passwords, tokens, or real personal information in Git.
 
 From `backend/`, point `DB_URL` to a dedicated demo database and start the profile:
 
