@@ -10,3 +10,18 @@ export interface DashboardSummaryResponse {
   lowStockThreshold: number
   lowStockVariants: ProductVariantResponse[]
 }
+
+export type RevenueGrouping = 'DAY' | 'MONTH'
+
+export interface RevenuePointResponse {
+  period: string
+  revenue: number
+  orderCount: number
+}
+
+export interface TopProductResponse {
+  productId: number
+  productName: string
+  quantitySold: number
+  revenue: number
+}
