@@ -118,6 +118,13 @@ export interface OrderSummaryResponse {
   createdAt: string
 }
 
+export interface AdminOrderResponse {
+  customerId: number
+  customerEmail: string
+  customerName: string
+  order: OrderResponse
+}
+
 export interface OrderResponse {
   id: number
   status: OrderStatus
