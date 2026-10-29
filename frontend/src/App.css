@@ -1073,6 +1073,8 @@
 
 .review-filters input,
 .review-filters select,
+.admin-order-filters input,
+.admin-order-filters select,
 .order-review-form select,
 .order-review-form textarea {
   background: #fff;
@@ -1422,6 +1424,164 @@
   margin-bottom: 18px;
 }
 
+.admin-order-filters {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 22px 0;
+}
+
+.admin-order-filters label {
+  color: #536278;
+  display: grid;
+  flex: 1 1 150px;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 6px;
+}
+
+.admin-order-filters input,
+.admin-order-filters select {
+  width: 100%;
+}
+
+.admin-orders-page,
+.admin-order-detail-page {
+  min-height: auto;
+}
+
+.admin-orders-page h1,
+.admin-order-detail-page h1 {
+  color: #18263b;
+  font-size: 26px;
+  margin: 0;
+}
+
+.admin-order-summary,
+.admin-order-items {
+  margin-top: 18px;
+}
+
+.admin-order-summary .payment-details {
+  margin-bottom: 0;
+}
+
+.admin-order-summary .payment-details > div:last-child {
+  border-bottom: 0;
+}
+
+.admin-order-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-order-totals {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 0 auto;
+  max-width: 360px;
+}
+
+.admin-order-totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-order-totals dt {
+  color: #59677a;
+}
+
+.admin-order-totals dd {
+  color: #253044;
+  font-weight: 600;
+  margin: 0;
+  text-align: right;
+}
+
+.admin-order-totals > div:last-child {
+  border-top: 1px solid #e0e6ee;
+  font-size: 16px;
+  padding-top: 10px;
+}
+
+.dashboard-report-widgets {
+  margin-top: 16px;
+}
+
+.revenue-chart {
+  align-items: stretch;
+  border-bottom: 1px solid #dfe5ec;
+  display: flex;
+  gap: 3px;
+  height: 190px;
+  margin-top: 20px;
+  overflow: hidden;
+  padding: 8px 2px 0;
+}
+
+.revenue-chart-column {
+  align-items: center;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  justify-content: end;
+  min-width: 2px;
+}
+
+.revenue-chart-bar {
+  background: #527ead;
+  border-radius: 3px 3px 0 0;
+  min-height: 2px;
+  width: 100%;
+}
+
+.revenue-chart-label {
+  color: #69788d;
+  font-size: 9px;
+  line-height: 20px;
+}
+
+.top-products-chart {
+  display: grid;
+  gap: 16px;
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+}
+
+.top-products-chart li {
+  display: grid;
+  gap: 7px;
+}
+
+.top-product-label {
+  align-items: baseline;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.top-product-label strong {
+  color: #253044;
+  font-size: 13px;
+}
+
+.top-product-label span {
+  color: #69788d;
+  font-size: 12px;
+  text-align: right;
+}
+
+.top-product-bar {
+  background: #78a875;
+  border-radius: 4px;
+  height: 8px;
+  min-width: 2px;
+}
+
 .status-counts {
   display: grid;
   gap: 10px;
@@ -1677,6 +1837,11 @@
 
   .dashboard-widgets {
     grid-template-columns: 1fr;
+  }
+
+  .admin-order-summary > .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .cart-layout {
