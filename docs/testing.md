@@ -29,6 +29,7 @@ File `backend/src/test/resources/application-test.properties` mặc định dùn
 - Tài khoản và mật khẩu: lấy từ `DB_USERNAME` và `DB_PASSWORD` trong `backend/.env` (cùng tài khoản đang chạy ứng dụng).
 
 Muốn đổi, đặt biến môi trường `TEST_DB_URL`, `TEST_DB_USERNAME`, `TEST_DB_PASSWORD` trước khi chạy.
+Test profile tự nạp `backend/.env` khi file này có mặt; biến `TEST_DB_*` được ưu tiên hơn cấu hình mặc định.
 
 **Chốt an toàn:** nếu URL không chứa chữ `test`, mọi integration test dừng ngay và không xóa gì.
 
