@@ -13,10 +13,11 @@ cd backend
 
 ## 1. Tạo database test (làm một lần)
 
-Integration test chạy trên một database **riêng**, tên có chứa chữ `test`. Test sẽ **xóa sạch dữ liệu** của database này trước mỗi bài, vì vậy tuyệt đối không dùng database đang chạy ứng dụng.
+Integration test chạy trên database **riêng**, tên có chứa chữ `test`. Test nghiệp vụ thường sẽ **xóa sạch dữ liệu** trước mỗi bài; `DemoSeedIntegrationTest` cần database riêng thứ hai để giữ dữ liệu seed, vì vậy tuyệt đối không dùng database đang chạy ứng dụng.
 
 ```powershell
 psql -U postgres -c "CREATE DATABASE ooad_cosmetics_test;"
+psql -U postgres -c "CREATE DATABASE ooad_cosmetics_demo_test;"
 ```
 
 Không cần tạo bảng. Lần chạy đầu, Flyway tự tạo toàn bộ bảng.
@@ -28,8 +29,7 @@ File `backend/src/test/resources/application-test.properties` mặc định dùn
 - URL: `jdbc:postgresql://localhost:5432/ooad_cosmetics_test`
 - Tài khoản và mật khẩu: lấy từ `DB_USERNAME` và `DB_PASSWORD` trong `backend/.env` (cùng tài khoản đang chạy ứng dụng).
 
-Muốn đổi, đặt biến môi trường `TEST_DB_URL`, `TEST_DB_USERNAME`, `TEST_DB_PASSWORD` trước khi chạy.
-Test profile tự nạp `backend/.env` khi file này có mặt; biến `TEST_DB_*` được ưu tiên hơn cấu hình mặc định.
+Không cần file `.env`: đặt biến môi trường `TEST_DB_URL`, `TEST_DB_USERNAME`, `TEST_DB_PASSWORD` trước khi chạy. Đặt thêm `DEMO_TEST_DB_URL` trỏ đến database `ooad_cosmetics_demo_test` (cùng host/user/password); nếu không đặt, test dùng URL mặc định trên cổng 5432. Test profile vẫn tự nạp `backend/.env` nếu có; các biến `TEST_DB_*` được ưu tiên hơn cấu hình mặc định.
 
 **Chốt an toàn:** nếu URL không chứa chữ `test`, mọi integration test dừng ngay và không xóa gì.
 
@@ -39,7 +39,7 @@ Test profile tự nạp `backend/.env` khi file này có mặt; biến `TEST_DB_
 cd backend
 .\gradlew.bat test --tests "*OrderStatusTest" --tests "*OrderPricingTest" --tests "*ReviewServiceTest" --tests "*VoucherServiceTest" --tests "*DashboardServiceTest" --tests "*CartServiceTest" --tests "*OrderServiceTest"
 .\gradlew.bat test --tests "*CheckoutOrderIntegrationTest"  # integration; requires dedicated test database
-```
+```git 
 
 Chạy một lớp integration test khác bằng cách thay bộ lọc `--tests`. Không chạy toàn bộ task `test` nếu chưa cấu hình database test.
 

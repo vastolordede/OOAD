@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Tag("integration")
 @SpringBootTest(properties = {
-        "spring.datasource.url=${DEMO_TEST_DB_URL:jdbc:postgresql://localhost:5432/ooad_cosmetics_demo_test}",
+        "spring.datasource.url=${DEMO_TEST_DB_URL:${TEST_DB_URL:jdbc:postgresql://localhost:5432/ooad_cosmetics_demo_test}}",
         "spring.flyway.locations=classpath:db/migration,classpath:db/seed"
 })
 @ActiveProfiles({"test", "demo"})
@@ -85,13 +85,13 @@ class DemoSeedIntegrationTest {
                    OR (status <> 'CANCELLED' AND cancelled_at IS NOT NULL)
                 """)).isZero();
         assertThat(count("""
-                SELECT COUNT(*) FROM order_items
-                JOIN product_variants v ON v.id = order_items.variant_id
+                SELECT COUNT(*) FROM order_items oi
+                JOIN product_variants v ON v.id = oi.variant_id
                 JOIN products p ON p.id = v.product_id
-                WHERE line_total <> unit_price * quantity
-                   OR sku <> v.sku
-                   OR product_name <> p.name
-                   OR unit_price <> v.price
+                WHERE oi.line_total <> oi.unit_price * oi.quantity
+                   OR oi.sku <> v.sku
+                   OR oi.product_name <> p.name
+                   OR oi.unit_price <> v.price
                 """)).isZero();
         assertThat(count("""
                 SELECT COUNT(*) FROM (
