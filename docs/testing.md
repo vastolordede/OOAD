@@ -13,10 +13,11 @@ cd backend
 
 ## 1. Tạo database test (làm một lần)
 
-Integration test chạy trên một database **riêng**, tên có chứa chữ `test`. Test sẽ **xóa sạch dữ liệu** của database này trước mỗi bài, vì vậy tuyệt đối không dùng database đang chạy ứng dụng.
+Integration test chạy trên database **riêng**, tên có chứa chữ `test`. Test nghiệp vụ thường sẽ **xóa sạch dữ liệu** trước mỗi bài; `DemoSeedIntegrationTest` cần database riêng thứ hai để giữ dữ liệu seed, vì vậy tuyệt đối không dùng database đang chạy ứng dụng.
 
 ```powershell
 psql -U postgres -c "CREATE DATABASE ooad_cosmetics_test;"
+psql -U postgres -c "CREATE DATABASE ooad_cosmetics_demo_test;"
 ```
 
 Không cần tạo bảng. Lần chạy đầu, Flyway tự tạo toàn bộ bảng.
@@ -28,7 +29,7 @@ File `backend/src/test/resources/application-test.properties` mặc định dùn
 - URL: `jdbc:postgresql://localhost:5432/ooad_cosmetics_test`
 - Tài khoản và mật khẩu: lấy từ `DB_USERNAME` và `DB_PASSWORD` trong `backend/.env` (cùng tài khoản đang chạy ứng dụng).
 
-Muốn đổi, đặt biến môi trường `TEST_DB_URL`, `TEST_DB_USERNAME`, `TEST_DB_PASSWORD` trước khi chạy.
+Không cần file `.env`: đặt biến môi trường `TEST_DB_URL`, `TEST_DB_USERNAME`, `TEST_DB_PASSWORD` trước khi chạy. Đặt thêm `DEMO_TEST_DB_URL` trỏ đến database `ooad_cosmetics_demo_test` (cùng host/user/password); nếu không đặt, test dùng URL mặc định trên cổng 5432. Test profile vẫn tự nạp `backend/.env` nếu có; các biến `TEST_DB_*` được ưu tiên hơn cấu hình mặc định.
 
 **Chốt an toàn:** nếu URL không chứa chữ `test`, mọi integration test dừng ngay và không xóa gì.
 
@@ -38,7 +39,7 @@ Muốn đổi, đặt biến môi trường `TEST_DB_URL`, `TEST_DB_USERNAME`, `
 cd backend
 .\gradlew.bat test --tests "*OrderStatusTest" --tests "*OrderPricingTest" --tests "*ReviewServiceTest" --tests "*VoucherServiceTest" --tests "*DashboardServiceTest" --tests "*CartServiceTest" --tests "*OrderServiceTest"
 .\gradlew.bat test --tests "*CheckoutOrderIntegrationTest"  # integration; requires dedicated test database
-```
+```git 
 
 Chạy một lớp integration test khác bằng cách thay bộ lọc `--tests`. Không chạy toàn bộ task `test` nếu chưa cấu hình database test.
 
@@ -71,11 +72,11 @@ Frontend hiện chưa có test runner riêng; các bước dưới đây là ki�
 | Việc | Luồng kiểm tra | Kết quả mong đợi |
 |---|---|---|
 | T05 | Customer đăng nhập → mở `/products/{id}` → thêm variant vào cart → cập nhật số lượng → checkout → tạo order COD | Cart/checkout hiển thị dữ liệu backend; giá và tồn kho được backend xác nhận; tạo đơn không gửi lặp |
-| T06 | Admin cập nhật trạng thái đơn → Customer tải lại My Orders | Admin API `PATCH /api/admin/orders/{id}/status` đã được bổ sung; xác minh UI gọi API và tải lại trạng thái đơn |
+| T06 | Admin mở `/admin/orders`, lọc/tìm đơn, mở detail và cập nhật trạng thái hợp lệ → Customer tải lại My Orders | Danh sách/detail/status gọi lần lượt Admin Order APIs; backend từ chối chuyển trạng thái không hợp lệ; My Orders hiển thị trạng thái mới sau khi tải lại |
 | T07 | Hủy đơn PENDING/CONFIRMED trong Order Detail; kiểm tra stock sau đó | UI xác nhận trước khi hủy, trạng thái được tải lại; kiểm tra tồn kho khôi phục bằng backend/integration test |
 | T08 | Checkout nhập voucher hợp lệ, voucher sai, gỡ voucher | Preview backend cập nhật tổng; mã sai báo lỗi; gỡ mã gọi preview không có voucher |
 | T09 | Dùng đơn DELIVERED chưa review để gửi rating 1–5; thử gửi trùng OrderItem | Form chỉ xuất hiện cho DELIVERED; gửi trùng/rating không hợp lệ hiển thị lỗi backend |
-| T13 | Mở lần lượt Cart, Checkout, My Orders, Order Detail, My Reviews, Wishlist, Payment simulation, Dashboard, Voucher, Review Moderation ở desktop và mobile | Không vỡ layout; loading/error/empty state và điều hướng hoạt động |
+| T13 | Mở Cart, Checkout, My Orders, Order Detail, My Reviews, Wishlist, Payment simulation, Dashboard/reports, Admin Orders/list/detail, Voucher, Review Moderation ở desktop và mobile | Không vỡ layout; loading/error/empty state, filter/pagination, status update và điều hướng hoạt động |
 | R17 | Mở `/my-reviews`, sửa rating/comment, xóa review sau xác nhận | PUT/DELETE cập nhật danh sách; lỗi backend được hiển thị; không xóa khi người dùng hủy xác nhận |
 | W05 | Thêm sản phẩm vào wishlist từ Product Detail, tải `/wishlist`, xóa sản phẩm và phân trang | Chỉ lưu sản phẩm cho Customer hiện tại; giá/khả dụng lấy từ backend; trạng thái rỗng/lỗi hiển thị rõ |
 | O49 | Checkout chọn ONLINE; trên màn hình thanh toán thử confirm và fail; thử lại sau FAILED | Payment status đồng bộ với API; chỉ PENDING được thao tác; UI ghi rõ là mô phỏng, không có giao dịch thật |
@@ -84,7 +85,7 @@ Ghi lại API response/lỗi và bước tái hiện khi test lỗi. Dùng dữ 
 
 Các màn hình O36 (Create Order), R13 (Admin Review Moderation) và DB09 (Low Stock Widget) đã được triển khai trong code trước đó, dù một số dòng sheet đang hiển thị `Chưa Bắt Đầu`. Hash tham chiếu lần lượt là `cd1eb12`, `4052afc`, `583e25c`; hãy xác minh trạng thái sheet thay vì tạo lại.
 
-O40–O42/T06 không còn bị chặn bởi backend: Admin Order HTTP API đã có list/filter/detail/status, và Dashboard API có `/api/admin/dashboard/revenue` cùng `/api/admin/dashboard/top-products`. Vẫn cần chạy regression UI để xác nhận frontend tích hợp hai bề mặt này. O49 là mô phỏng, không thay thế cổng thanh toán thật.
+O40–O42/T06 có Admin Order HTTP APIs và frontend list/filter/detail/status UI. Dashboard revenue/top-products APIs and charts are also present. The HTTP API is covered in `DemoFlowApiIntegrationTest`; the manual UI regression still requires a running local backend and dedicated database. O49 is a simulation and does not replace a real payment provider.
 
 Hợp đồng chi tiết và các bề mặt FE chưa được hỗ trợ được ghi trong [api-contract-admin](api-contract-admin.md).
 

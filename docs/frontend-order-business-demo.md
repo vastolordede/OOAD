@@ -32,15 +32,14 @@ Use disposable local test accounts and records. Keep any credentials/data checkl
 
 ### Admin
 
-11. Sign in as the test Admin and show Dashboard cards, order-status counts, low-stock widget, voucher list/form, and review moderation.
-12. Hide or show a review and verify the returned status in the moderation list.
-
-## Known demonstration blocker
-
-The Admin Order UI and the Admin step in the Customer → Admin update → Customer refresh sequence cannot be demonstrated through the frontend yet. The backend repository has the service methods/DTO but no Admin Order controller, so there is no verified endpoint contract to call. Until it is added, use a pre-provisioned delivered test order for the Review demo; do not claim that T06 or admin-driven status transitions passed in the frontend.
+11. Sign in as the test Admin. Show Dashboard cards, order-status counts, low-stock widget, revenue and top-selling charts.
+12. Open Admin Orders, filter by status/date or search by order ID/customer/recipient, then open a detail.
+13. Move a disposable COD order through valid statuses; demonstrate cancellation only for an order that is safe to cancel. Sign in as its Customer and refresh My Orders to confirm the status is synchronized.
+14. Show the voucher list/form and review moderation; hide or show a review and verify the returned status in the moderation list.
 
 ## Reset and safety
 
 - Use local test data only; the integration test guidance in [testing.md](testing.md) applies to a dedicated database whose name contains `test`.
+- The demo dataset and disposable accounts must use a dedicated local demo database. Set or reset credentials outside Git.
 - Do not run destructive cleanup against the application database.
 - Do not save demo passwords, tokens, or personal customer information in this repository.

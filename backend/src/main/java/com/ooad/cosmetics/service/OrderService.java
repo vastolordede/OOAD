@@ -125,6 +125,7 @@ public class OrderService {
         return adminList(status, q, from, to, page, size, null, null);
     }
 
+    @Transactional(readOnly = true)
     public PageResponse<OrderSummaryResponse> adminList(
             OrderStatus status,
             String q,
