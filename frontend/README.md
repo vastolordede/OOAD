@@ -49,7 +49,7 @@ React + TypeScript + Vite frontend for customer account, catalog, checkout/order
 | `/admin/products/new` | ADMIN | Create a product |
 | `/admin/products/:productId/edit` | ADMIN | Edit product, variants, images, and stock |
 | `/admin/inventory` | ADMIN | Review low-stock variants and update stock |
-| `/admin/orders` | ADMIN | Existing placeholder; the backend Admin Order API is not yet wired into this frontend screen |
+| `/admin/orders` | ADMIN | Search/filter/sort orders, inspect customer/order details, and apply valid status transitions |
 | `/admin/vouchers` | ADMIN | Voucher list, filters, create/edit, and activation status |
 | `/admin/reviews` | ADMIN | Review moderation |
 
@@ -62,8 +62,9 @@ The reusable layouts are defined in `src/components/common/MainLayout.tsx` and `
 - Checkout totals and voucher validity come from `POST /api/checkout/preview`; the frontend does not calculate replacement totals.
 - Checkout supports COD and the backend's explicitly simulated `ONLINE` method; the latter does not connect to a real provider or charge money.
 - Customer cancellation is shown only for `PENDING` and `CONFIRMED`, matching `OrderStatus.canTransitionTo`.
+- Admin order actions follow the backend transition rules; cancellation confirms before restoring stock/voucher usage, and ONLINE orders cannot be confirmed until payment is PAID.
 - Review creation is offered only for `DELIVERED` orders and remains subject to backend rating and duplicate-item validation.
-- Admin APIs are protected by the backend's `ADMIN` role. Image file upload requires the backend Cloudinary feature to be enabled. The backend Admin Order API exists, but its frontend screen remains a placeholder.
+- Admin orders use `GET /api/admin/orders`, `GET /api/admin/orders/{id}`, and `PATCH /api/admin/orders/{id}/status`. Admin APIs are protected by the backend's `ADMIN` role. Image file upload requires the backend Cloudinary feature to be enabled.
 
 ## Design and test references
 

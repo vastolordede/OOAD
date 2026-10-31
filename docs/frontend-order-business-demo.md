@@ -32,12 +32,11 @@ Use disposable local test accounts and records. Keep any credentials/data checkl
 
 ### Admin
 
-11. Sign in as the test Admin and show Dashboard cards, order-status counts, low-stock widget, voucher list/form, and review moderation.
-12. Hide or show a review and verify the returned status in the moderation list.
+11. Sign in as the test Admin and show Dashboard cards, order-status counts, low-stock widget, Admin Orders filters/details/status transitions, voucher list/form, and review moderation.
+12. Update a test order through valid status transitions in `/admin/orders`, then return to the Customer session and confirm the status in My Orders.
+13. Hide or show a review and verify the returned status in the moderation list.
 
-## Known demonstration blocker
-
-The Admin Order UI and the Admin step in the Customer → Admin update → Customer refresh sequence cannot be demonstrated through the frontend yet. The backend repository has the service methods/DTO but no Admin Order controller, so there is no verified endpoint contract to call. Until it is added, use a pre-provisioned delivered test order for the Review demo; do not claim that T06 or admin-driven status transitions passed in the frontend.
+The Admin Order API enforces valid transitions. Use a disposable COD test order for the full PENDING → CONFIRMED → SHIPPING → DELIVERED sequence. ONLINE orders must be paid before confirmation.
 
 ## Reset and safety
 

@@ -3,7 +3,7 @@ import { AdminLayout } from '../components/common/AdminLayout'
 import { MainLayout } from '../components/common/MainLayout'
 import { AccessDeniedPage } from '../pages/AccessDeniedPage'
 import { AddressesPage } from '../pages/AddressesPage'
-import { AdminSectionPage } from '../pages/AdminSectionPage'
+import { AdminOrdersPage } from '../pages/AdminOrdersPage'
 import { AdminVoucherFormPage } from '../pages/AdminVoucherFormPage'
 import { AdminVoucherListPage } from '../pages/AdminVoucherListPage'
 import { AdminDashboardPage } from '../pages/AdminDashboardPage'
@@ -66,7 +66,7 @@ export function AppRoutes() {
           <Route element={<AdminProductFormPage />} path="products/new" />
           <Route element={<AdminProductFormPage />} path="products/:productId/edit" />
           <Route element={<AdminInventoryPage />} path="inventory" />
-          <Route element={<AdminSectionPage />} path="orders" />
+          <Route element={<AdminOrdersPage />} path="orders" />
           <Route element={<AdminVoucherListPage />} path="vouchers" />
           <Route element={<AdminVoucherFormPage />} path="vouchers/new" />
           <Route element={<AdminVoucherFormPage />} path="vouchers/:voucherId/edit" />
