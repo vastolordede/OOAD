@@ -62,6 +62,15 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(
+                                "/api/cart", "/api/cart/**",
+                                "/api/checkout", "/api/checkout/**",
+                                "/api/orders", "/api/orders/**",
+                                "/api/addresses", "/api/addresses/**",
+                                "/api/reviews", "/api/reviews/**",
+                                "/api/wishlist", "/api/wishlist/**",
+                                "/api/payments", "/api/payments/**"
+                        ).hasRole("CUSTOMER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
