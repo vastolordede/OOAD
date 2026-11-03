@@ -13,3 +13,19 @@ api.interceptors.request.use((config) => {
 
   return config
 })
+
+// Ignore login errors and stale responses belonging to a previous token.
+api.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      const url = error.config?.url ?? ''
+      const token = localStorage.getItem('accessToken')
+      const header = error.config?.headers?.Authorization
+      if (token && !url.startsWith('/auth/') && header === `Bearer ${token}`) {
+        window.dispatchEvent(new Event('ooad:auth-expired'))
+      }
+    }
+    return Promise.reject(error)
+  },
+)

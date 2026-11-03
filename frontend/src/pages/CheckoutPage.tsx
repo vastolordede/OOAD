@@ -49,6 +49,7 @@ export function CheckoutPage() {
     status: 'loading' | 'success' | 'error'
     data?: CheckoutPreviewResponse
   } | null>(null)
+  const [previewRetry, setPreviewRetry] = useState(0)
   const [voucherCode, setVoucherCode] = useState('')
   const [voucherDraft, setVoucherDraft] = useState('')
   const [note, setNote] = useState('')
@@ -62,7 +63,7 @@ export function CheckoutPage() {
   const [createdOrder, setCreatedOrder] = useState<OrderResponse | null>(null)
   const submitLock = useRef(false)
   const previewKey =
-    selectedAddressId === null ? null : `${selectedAddressId}:${voucherCode}`
+    selectedAddressId === null ? null : `${selectedAddressId}:${voucherCode}:${previewRetry}`
   const preview =
     previewKey !== null &&
     previewState?.key === previewKey &&
@@ -117,7 +118,7 @@ export function CheckoutPage() {
     }
 
     let isCurrent = true
-    const requestKey = `${selectedAddressId}:${voucherCode}`
+    const requestKey = `${selectedAddressId}:${voucherCode}:${previewRetry}`
 
     previewCheckoutApi({
       addressId: selectedAddressId,
@@ -138,7 +139,7 @@ export function CheckoutPage() {
     return () => {
       isCurrent = false
     }
-  }, [selectedAddressId, toast, voucherCode])
+  }, [selectedAddressId, toast, voucherCode, previewRetry])
 
   async function handleCreateAddress(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -474,6 +475,15 @@ export function CheckoutPage() {
             <p className="form-error" role="alert">Chưa thể tính đơn hàng. Vui lòng kiểm tra địa chỉ nhận hàng hoặc mã giảm giá.</p>
           )}
 
+          {previewState?.key === previewKey && previewState.status === 'error' && (
+            <button
+              className="button button-secondary"
+              onClick={() => setPreviewRetry((value) => value + 1)}
+              type="button"
+            >
+              Thử tính lại đơn hàng
+            </button>
+          )}
           <fieldset className="payment-method-options">
             <legend>Phương thức thanh toán</legend>
             <label className="address-option">
