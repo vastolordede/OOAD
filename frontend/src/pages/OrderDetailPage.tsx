@@ -8,6 +8,7 @@ import type { ReviewResponse } from '../types/review'
 import { useToast } from '../hooks/useToast'
 import { getErrorMessage } from '../utils/getErrorMessage'
 import { formatCurrency } from '../utils/formatCurrency'
+import { formatDateTime, orderStatusLabel, paymentMethodLabel } from '../utils/localization'
 
 type OrderDetailState =
   | { key: string; status: 'success'; order: OrderResponse }
@@ -78,7 +79,7 @@ export function OrderDetailPage() {
                 orderItemIds: [],
                 error: getErrorMessage(error),
               })
-              toast.error(`Unable to check previously submitted reviews: ${getErrorMessage(error)}`)
+              toast.error(`Không thể kiểm tra đánh giá đã gửi: ${getErrorMessage(error)}`)
             }
           }
         }
@@ -108,7 +109,7 @@ export function OrderDetailPage() {
     if (!order || !canCancelOrder(order.status)) {
       return
     }
-    if (!window.confirm(`Cancel order #${order.id}?`)) {
+    if (!window.confirm(`Bạn có chắc muốn hủy đơn hàng #${order.id}?`)) {
       return
     }
 
@@ -116,13 +117,13 @@ export function OrderDetailPage() {
     try {
       const cancelledOrder = await cancelOrderApi(order.id)
       setDetailState({ key: requestKey, status: 'success', order: cancelledOrder })
-      toast.success(`Order #${order.id} cancelled.`)
+      toast.success(`Đã hủy đơn hàng #${order.id}.`)
 
       try {
         const refreshedOrder = await getOrderDetailApi(order.id)
         setDetailState({ key: requestKey, status: 'success', order: refreshedOrder })
       } catch (refreshError) {
-        toast.error(`Cancellation succeeded, but the order could not be refreshed: ${getErrorMessage(refreshError)}`)
+        toast.error(`Đã hủy đơn hàng nhưng không thể tải lại thông tin: ${getErrorMessage(refreshError)}`)
       }
     } catch (error) {
       toast.error(getErrorMessage(error))
@@ -135,32 +136,32 @@ export function OrderDetailPage() {
     return (
       <main className="customer-page">
         <section className="customer-panel">
-          <h1>Order not found</h1>
-          <p className="form-error" role="alert">The order ID is invalid.</p>
-          <Link className="text-link" to="/my-orders">Back to my orders</Link>
+          <h1>Không tìm thấy đơn hàng</h1>
+          <p className="form-error" role="alert">Mã đơn hàng không hợp lệ.</p>
+          <Link className="text-link" to="/my-orders">Quay lại đơn hàng</Link>
         </section>
       </main>
     )
   }
 
   if (isLoading) {
-    return <main className="customer-page"><p className="loading-state" role="status">Loading order…</p></main>
+    return <main className="customer-page"><p className="loading-state" role="status">Đang tải đơn hàng...</p></main>
   }
 
   if (loadError) {
     return (
       <main className="customer-page">
         <section className="customer-panel">
-          <h1>Unable to load order</h1>
+          <h1>Không thể tải đơn hàng</h1>
           <p className="form-error" role="alert">{loadError}</p>
           <button
             className="button button-secondary"
             onClick={() => setReloadVersion((version) => version + 1)}
             type="button"
           >
-            Retry
+            Thử lại
           </button>
-          <Link className="text-link" to="/my-orders">Back to my orders</Link>
+          <Link className="text-link" to="/my-orders">Quay lại đơn hàng</Link>
         </section>
       </main>
     )
@@ -170,28 +171,28 @@ export function OrderDetailPage() {
 
   return (
     <main className="customer-page">
-      <Link className="text-link" to="/my-orders">← Back to my orders</Link>
+      <Link className="text-link" to="/my-orders">← Quay lại đơn hàng</Link>
       <header className="customer-page-header order-detail-header">
         <div>
           <p className="eyebrow">Order #{order.id}</p>
-          <h1>Order details</h1>
-          <p className="muted-text">Placed {new Date(order.createdAt).toLocaleString()}</p>
+          <h1>Chi tiết đơn hàng</h1>
+          <p className="muted-text">Đặt lúc {formatDateTime(order.createdAt)}</p>
         </div>
         <span className={`status-badge status-${order.status.toLowerCase()}`}>
-          {order.status}
+          {orderStatusLabel(order.status)}
         </span>
       </header>
 
       <div className="order-detail-grid">
         <div className="order-detail-main">
           <section className="customer-panel">
-            <h2>Items</h2>
+            <h2>Sản phẩm</h2>
             <ul className="detail-items">
               {order.items.map((item) => (
                 <li key={item.id}>
                   <div>
                     <strong>{item.productName}</strong>
-                    <span>SKU: {item.sku} · Quantity: {item.quantity}</span>
+                    <span>Mã SKU: {item.sku} · Số lượng: {item.quantity}</span>
                   </div>
                   <span>{formatCurrency(item.lineTotal)}</span>
                 </li>
@@ -199,20 +200,20 @@ export function OrderDetailPage() {
             </ul>
             {order.status === 'DELIVERED' && (
               <div className="order-review-section">
-                <h3>Product reviews</h3>
+                <h3>Đánh giá sản phẩm</h3>
                 {isLoading || !currentReviewLookup ? (
-                  <p className="muted-text" role="status">Checking submitted reviews…</p>
+                  <p className="muted-text" role="status">Đang kiểm tra đánh giá...</p>
                 ) : (
                   order.items.map((item) => (
                     <div className="order-review-item" key={item.id}>
                       <strong>{item.productName}</strong>
                       {currentReviewLookup.orderItemIds.includes(item.id) ? (
-                        <p className="review-complete">Already reviewed.</p>
+                        <p className="review-complete">Bạn đã đánh giá sản phẩm này.</p>
                       ) : (
                         <>
                           {currentReviewLookup.error && (
                             <p className="form-error" role="alert">
-                              Could not verify previous reviews. The server will prevent duplicate submissions.
+                              Không thể xác minh đánh giá trước đó. Hệ thống sẽ ngăn gửi đánh giá trùng lặp.
                             </p>
                           )}
                           <OrderReviewForm
@@ -228,7 +229,7 @@ export function OrderDetailPage() {
             )}
           </section>
           <section className="customer-panel">
-            <h2>Shipping</h2>
+            <h2>Thông tin nhận hàng</h2>
             <p><strong>{order.receiverName}</strong></p>
             <p>{order.receiverPhone}</p>
             <p>{formatAddress(order)}</p>
@@ -236,19 +237,19 @@ export function OrderDetailPage() {
         </div>
 
         <aside className="customer-panel order-totals">
-          <h2>Summary</h2>
-          <div><span>Subtotal</span><span>{formatCurrency(order.subtotal)}</span></div>
-          <div><span>Discount</span><span>− {formatCurrency(order.discountAmount)}</span></div>
-          <div><span>Shipping</span><span>{formatCurrency(order.shippingFee)}</span></div>
-          <div className="summary-total"><strong>Total</strong><strong>{formatCurrency(order.totalAmount)}</strong></div>
-          <div><span>Payment</span><span>{order.payment?.method ?? '—'}</span></div>
+          <h2>Tóm tắt đơn hàng</h2>
+          <div><span>Tạm tính</span><span>{formatCurrency(order.subtotal)}</span></div>
+          <div><span>Giảm giá</span><span>− {formatCurrency(order.discountAmount)}</span></div>
+          <div><span>Phí vận chuyển</span><span>{formatCurrency(order.shippingFee)}</span></div>
+          <div className="summary-total"><strong>Tổng thanh toán</strong><strong>{formatCurrency(order.totalAmount)}</strong></div>
+          <div><span>Thanh toán</span><span>{order.payment?.method ? paymentMethodLabel(order.payment.method) : '—'}</span></div>
           {order.payment?.method === 'ONLINE' && order.payment.status !== 'PAID' && order.status === 'PENDING' && (
             <Link className="button button-primary button-full" to={`/my-orders/${order.id}/payment`}>
-              Continue to payment
+              Tiếp tục thanh toán
             </Link>
           )}
-          {order.voucherCode && <div><span>Voucher</span><span>{order.voucherCode}</span></div>}
-          {order.note && <p className="order-note">Note: {order.note}</p>}
+          {order.voucherCode && <div><span>Mã giảm giá</span><span>{order.voucherCode}</span></div>}
+          {order.note && <p className="order-note">Ghi chú: {order.note}</p>}
           {canCancelOrder(order.status) && (
             <button
               className="button button-danger button-full"
@@ -256,7 +257,7 @@ export function OrderDetailPage() {
               onClick={() => void handleCancel()}
               type="button"
             >
-              {isCancelling ? 'Cancelling…' : 'Cancel order'}
+              {isCancelling ? 'Đang hủy...' : 'Hủy đơn hàng'}
             </button>
           )}
         </aside>

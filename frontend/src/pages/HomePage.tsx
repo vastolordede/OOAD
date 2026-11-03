@@ -41,34 +41,34 @@ export function HomePage() {
     <main className="customer-page home-page">
       <section className="customer-panel home-hero">
         <div>
-          <p className="eyebrow">OOAD Cosmetics</p>
-          <h1>{user ? `Hello, ${user.fullName}` : 'Beauty, thoughtfully curated'}</h1>
+          <p className="eyebrow">Mỹ Phẩm Tơ Ràn</p>
+          <h1>{user ? `Xin chào, ${user.fullName}` : 'Chăm sóc làn da, tôn vinh vẻ đẹp của bạn'}</h1>
           <p className="page-intro">
             {user
-              ? `Welcome back. You're signed in as ${user.role.toLowerCase()}.`
-              : 'Discover skincare and beauty essentials selected for your everyday routine.'}
+              ? `Chào mừng bạn quay trở lại. Bạn đang đăng nhập với vai trò ${user.role === 'ADMIN' ? 'quản trị viên' : 'khách hàng'}.`
+              : 'Khám phá các sản phẩm chăm sóc da và làm đẹp được tuyển chọn cho thói quen hằng ngày của bạn.'}
           </p>
           <div className="home-hero-actions">
-            <Link className="button button-primary" to="/products">Browse Catalog</Link>
+            <Link className="button button-primary" to="/products">Khám phá sản phẩm</Link>
             {!user && (
               <>
-                <Link className="button button-secondary" to="/login">Sign in</Link>
-                <Link className="button button-secondary" to="/register">Create an account</Link>
+                <Link className="button button-secondary" to="/login">Đăng nhập</Link>
+                <Link className="button button-secondary" to="/register">Tạo tài khoản</Link>
               </>
             )}
             {user?.role === 'ADMIN' && (
-              <Link className="button button-secondary" to="/admin/dashboard">Open administration</Link>
+              <Link className="button button-secondary" to="/admin/dashboard">Mở trang quản trị</Link>
             )}
             {user?.role === 'CUSTOMER' && (
               <>
-                <Link className="button button-secondary" to="/cart">View cart</Link>
-                <Link className="button button-secondary" to="/checkout">Go to checkout</Link>
-                <Link className="button button-secondary" to="/my-orders">View my orders</Link>
+                <Link className="button button-secondary" to="/cart">Xem giỏ hàng</Link>
+                <Link className="button button-secondary" to="/checkout">Tiến hành đặt hàng</Link>
+                <Link className="button button-secondary" to="/my-orders">Xem đơn hàng</Link>
               </>
             )}
             {user && (
               <button className="button button-secondary" onClick={logout} type="button">
-                Sign out
+                Đăng xuất
               </button>
             )}
           </div>
@@ -78,13 +78,13 @@ export function HomePage() {
       <section aria-labelledby="new-arrivals-heading" className="featured-section">
         <header className="featured-header">
           <div>
-            <p className="eyebrow">Just added</p>
-            <h2 id="new-arrivals-heading">Featured / New Arrivals</h2>
-            <p className="page-intro">Explore the latest additions to our collection.</p>
+            <p className="eyebrow">Vừa cập nhật</p>
+            <h2 id="new-arrivals-heading">Sản phẩm mới</h2>
+            <p className="page-intro">Khám phá những sản phẩm mới nhất trong bộ sưu tập.</p>
           </div>
-          <Link className="button button-secondary" to="/products">View all products</Link>
+          <Link className="button button-secondary" to="/products">Xem tất cả sản phẩm</Link>
         </header>
-        {isLoading && <LoadingState message="Loading new arrivals…" />}
+        {isLoading && <LoadingState message="Đang tải sản phẩm mới..." />}
         {error && (
           <ErrorState
             message={error}
@@ -93,9 +93,9 @@ export function HomePage() {
         )}
         {!isLoading && !error && products.length === 0 && (
           <EmptyState
-            action={<Link className="button button-secondary" to="/products">Browse catalog</Link>}
-            description="There are no products to feature right now."
-            title="No new arrivals yet"
+            action={<Link className="button button-secondary" to="/products">Xem danh sách sản phẩm</Link>}
+            description="Hiện chưa có sản phẩm nào để giới thiệu."
+            title="Chưa có sản phẩm mới"
           />
         )}
         {!isLoading && !error && products.length > 0 && (

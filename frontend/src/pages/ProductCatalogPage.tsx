@@ -225,56 +225,56 @@ export function ProductCatalogPage() {
     <main className="customer-page catalog-page">
       <header className="catalog-header">
         <div>
-          <p className="eyebrow">OOAD Cosmetics</p>
-          <h1>Product catalog</h1>
-          <p className="page-intro">Find your next favorite in our beauty collection.</p>
+          <p className="eyebrow">Mỹ Phẩm Tơ Ràn</p>
+          <h1>Danh sách sản phẩm</h1>
+          <p className="page-intro">Tìm sản phẩm yêu thích tiếp theo trong bộ sưu tập làm đẹp của chúng tôi.</p>
         </div>
       </header>
 
       {optionsError && (
         <ErrorState
-          message={`Unable to load category and brand filters: ${optionsError}`}
+          message={`Không thể tải bộ lọc danh mục và thương hiệu: ${optionsError}`}
           onRetry={retryOptions}
         />
       )}
       <form className="catalog-filters" onSubmit={handleSubmit}>
         <label className="catalog-search">
-          Search products
+          Tìm kiếm sản phẩm
           <input
             onChange={(event) => updateFilter('q', event.target.value)}
-            placeholder="Search by product name"
+            placeholder="Nhập tên sản phẩm"
             type="search"
             value={filters.q}
           />
         </label>
         <label>
-          Category
+          Danh mục
           <select
             disabled={isLoadingOptions || optionsError !== null}
             onChange={(event) => updateFilter('categoryId', event.target.value)}
             value={filters.categoryId}
           >
-            <option value="">All categories</option>
+            <option value="">Tất cả danh mục</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>{category.name}</option>
             ))}
           </select>
         </label>
         <label>
-          Brand
+          Thương hiệu
           <select
             disabled={isLoadingOptions || optionsError !== null}
             onChange={(event) => updateFilter('brandId', event.target.value)}
             value={filters.brandId}
           >
-            <option value="">All brands</option>
+            <option value="">Tất cả thương hiệu</option>
             {brands.map((brand) => (
               <option key={brand.id} value={brand.id}>{brand.name}</option>
             ))}
           </select>
         </label>
         <label>
-          Minimum price
+          Giá thấp nhất
           <input
             min="0"
             onChange={(event) => updateFilter('minPrice', event.target.value)}
@@ -283,7 +283,7 @@ export function ProductCatalogPage() {
           />
         </label>
         <label>
-          Maximum price
+          Giá cao nhất
           <input
             min="0"
             onChange={(event) => updateFilter('maxPrice', event.target.value)}
@@ -292,7 +292,7 @@ export function ProductCatalogPage() {
           />
         </label>
         <label>
-          Sort by
+          Sắp xếp theo
           <select
             onChange={(event) => {
               const selectedSort = event.target.value
@@ -306,21 +306,21 @@ export function ProductCatalogPage() {
             }}
             value={filters.sort}
           >
-            <option value="NEWEST">Newest arrivals</option>
-            <option value="PRICE_ASC">Price: Low to High</option>
-            <option value="PRICE_DESC">Price: High to Low</option>
+            <option value="NEWEST">Mới nhất</option>
+            <option value="PRICE_ASC">Giá: thấp đến cao</option>
+            <option value="PRICE_DESC">Giá: cao đến thấp</option>
           </select>
         </label>
         <div className="catalog-filter-actions">
-          <button className="button button-primary" type="submit">Search</button>
+          <button className="button button-primary" type="submit">Tìm kiếm</button>
           <button className="button button-secondary" onClick={handleReset} type="button">
-            Reset filters
+            Xóa bộ lọc
           </button>
         </div>
         {priceError && <p className="form-error catalog-price-error" role="alert">{priceError}</p>}
       </form>
 
-      {isLoadingProducts && <LoadingState message="Loading products…" />}
+      {isLoadingProducts && <LoadingState message="Đang tải sản phẩm..." />}
       {productError && (
         <ErrorState
           message={productError}
@@ -329,14 +329,14 @@ export function ProductCatalogPage() {
       )}
       {!isLoadingProducts && !productError && pageData?.content.length === 0 && (
         <EmptyState
-          action={<button className="button button-secondary" onClick={handleReset} type="button">Clear filters</button>}
-          description="Try adjusting your search or filter selections."
-          title="No products found"
+          action={<button className="button button-secondary" onClick={handleReset} type="button">Xóa bộ lọc</button>}
+          description="Thử thay đổi từ khóa tìm kiếm hoặc lựa chọn bộ lọc."
+          title="Không tìm thấy sản phẩm"
         />
       )}
       {!isLoadingProducts && !productError && pageData && pageData.content.length > 0 && (
         <>
-          <section aria-label="Products" className="product-grid">
+          <section aria-label="Danh sách sản phẩm" className="product-grid">
             {pageData.content.map((product) => <ProductCard key={product.id} product={product} />)}
           </section>
           <Pagination

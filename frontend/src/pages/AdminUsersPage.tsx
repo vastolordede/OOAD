@@ -11,6 +11,7 @@ import { useToast } from '../hooks/useToast'
 import type { PageResponse } from '../types/api'
 import type { UserResponse } from '../types/auth'
 import { getErrorMessage } from '../utils/getErrorMessage'
+import { roleLabel, userStatusLabel } from '../utils/localization'
 
 interface UserListState {
   key: string
@@ -22,11 +23,6 @@ interface UserDetailState {
   id: number
   user?: UserResponse
   error?: string
-}
-
-function formatDate(value: string): string {
-  const parsed = new Date(value)
-  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString()
 }
 
 export function AdminUsersPage() {
@@ -100,7 +96,7 @@ export function AdminUsersPage() {
             },
           }
         : current)
-      toast.success(`User ${updated.status === 'ACTIVE' ? 'enabled' : 'disabled'}.`)
+      toast.success(updated.status === 'ACTIVE' ? 'Đã mở khóa tài khoản.' : 'Đã khóa tài khoản.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     } finally {
@@ -112,22 +108,22 @@ export function AdminUsersPage() {
     <section className="page-section">
       <header className="section-heading">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1>User management</h1>
+          <p className="eyebrow">Quản trị</p>
+          <h1>Quản lý tài khoản</h1>
         </div>
       </header>
       <form className="admin-filter-form" onSubmit={handleSearch}>
         <label>
-          Search users
+          Tìm kiếm tài khoản
           <input
             onChange={(event) => setQueryDraft(event.target.value)}
-            placeholder="Name or email"
+            placeholder="Nhập tên hoặc email"
             value={queryDraft}
           />
         </label>
-        <button className="button button-secondary" type="submit">Search</button>
+        <button className="button button-secondary" type="submit">Tìm kiếm</button>
       </form>
-      {currentResult === null && <LoadingState message="Loading users…" />}
+      {currentResult === null && <LoadingState message="Đang tải danh sách tài khoản..." />}
       {currentResult?.error && (
         <ErrorState
           message={currentResult.error}
@@ -139,18 +135,18 @@ export function AdminUsersPage() {
           <div className="table-scroll">
             <table className="data-table">
               <thead>
-                <tr><th>User</th><th>Role</th><th>Status</th><th>Actions</th></tr>
+                <tr><th>Người dùng</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr>
               </thead>
               <tbody>
                 {currentResult.page.content.map((user) => (
                   <tr key={user.id}>
                     <td><strong>{user.fullName}</strong><span className="table-subtext">{user.email}</span></td>
-                    <td>{user.role}</td>
-                    <td><span className={`status-badge status-${user.status.toLowerCase()}`}>{user.status}</span></td>
+                    <td>{roleLabel(user.role)}</td>
+                    <td><span className={`status-badge status-${user.status.toLowerCase()}`}>{userStatusLabel(user.status)}</span></td>
                     <td>
                       <div className="table-actions">
                         <button className="text-button" onClick={() => setSelectedUserId(user.id)} type="button">
-                          Details
+                          Chi tiết
                         </button>
                         <button
                           className="text-button"
@@ -158,7 +154,7 @@ export function AdminUsersPage() {
                           onClick={() => void handleToggleStatus(user)}
                           type="button"
                         >
-                          {workingId === user.id ? 'Updating…' : user.status === 'ACTIVE' ? 'Disable' : 'Enable'}
+                          {workingId === user.id ? 'Đang cập nhật...' : user.status === 'ACTIVE' ? 'Khóa tài khoản' : 'Mở khóa'}
                         </button>
                       </div>
                     </td>
@@ -167,7 +163,7 @@ export function AdminUsersPage() {
               </tbody>
             </table>
           </div>
-          {currentResult.page.content.length === 0 && <p className="empty-state">No users found.</p>}
+          {currentResult.page.content.length === 0 && <p className="empty-state">Không tìm thấy tài khoản phù hợp.</p>}
           <Pagination
             onPageChange={setPageNumber}
             page={currentResult.page.page}
@@ -177,14 +173,14 @@ export function AdminUsersPage() {
         </>
       )}
       {selectedUserId !== null && (
-        <section aria-label="User details" className="admin-detail-panel">
+        <section aria-label="Chi tiết người dùng" className="admin-detail-panel">
           <header className="section-heading">
-            <h2>User details</h2>
+            <h2>Chi tiết tài khoản</h2>
             <button className="button button-secondary" onClick={() => setSelectedUserId(null)} type="button">
-              Close
+              Đóng
             </button>
           </header>
-          {!currentDetail && <LoadingState message="Loading user details…" />}
+          {!currentDetail && <LoadingState message="Đang tải chi tiết tài khoản..." />}
           {currentDetail?.error && (
             <ErrorState
               message={currentDetail.error}
@@ -193,14 +189,14 @@ export function AdminUsersPage() {
           )}
           {currentDetail?.user && (
             <dl className="admin-detail-grid">
-              <div><dt>ID</dt><dd>{currentDetail.user.id}</dd></div>
+              <div><dt>Mã tài khoản</dt><dd>{currentDetail.user.id}</dd></div>
               <div><dt>Email</dt><dd>{currentDetail.user.email}</dd></div>
-              <div><dt>Full name</dt><dd>{currentDetail.user.fullName}</dd></div>
-              <div><dt>Phone</dt><dd>{currentDetail.user.phone || '—'}</dd></div>
-              <div><dt>Role</dt><dd>{currentDetail.user.role}</dd></div>
-              <div><dt>Status</dt><dd>{currentDetail.user.status}</dd></div>
-              <div><dt>Created</dt><dd>{formatDate(currentDetail.user.createdAt)}</dd></div>
-              <div><dt>Updated</dt><dd>{formatDate(currentDetail.user.updatedAt)}</dd></div>
+              <div><dt>Họ và tên</dt><dd>{currentDetail.user.fullName}</dd></div>
+              <div><dt>Số điện thoại</dt><dd>{currentDetail.user.phone || 'Chưa cập nhật'}</dd></div>
+              <div><dt>Vai trò</dt><dd>{roleLabel(currentDetail.user.role)}</dd></div>
+              <div><dt>Trạng thái</dt><dd>{userStatusLabel(currentDetail.user.status)}</dd></div>
+              <div><dt>Ngày tạo</dt><dd>{new Date(currentDetail.user.createdAt).toLocaleString('vi-VN')}</dd></div>
+              <div><dt>Cập nhật lần cuối</dt><dd>{new Date(currentDetail.user.updatedAt).toLocaleString('vi-VN')}</dd></div>
             </dl>
           )}
         </section>

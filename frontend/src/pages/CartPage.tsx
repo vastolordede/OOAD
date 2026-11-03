@@ -52,11 +52,11 @@ export function CartPage() {
   async function handleUpdate(itemId: number, currentQuantity: number, stock: number) {
     const quantity = Number(quantityDrafts[itemId] ?? currentQuantity)
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > 1000) {
-      toast.error('Quantity must be a whole number between 1 and 1000.')
+      toast.error('Số lượng phải là số nguyên từ 1 đến 1.000.')
       return
     }
     if (quantity > stock) {
-      toast.error(`Only ${stock} units are currently in stock.`)
+      toast.error(`Hiện chỉ còn ${stock} sản phẩm trong kho.`)
       return
     }
     if (quantity === currentQuantity) {
@@ -72,7 +72,7 @@ export function CartPage() {
         delete next[itemId]
         return next
       })
-      toast.success('Cart updated.')
+      toast.success('Đã cập nhật giỏ hàng.')
     } catch (requestError) {
       toast.error(getErrorMessage(requestError))
     } finally {
@@ -90,7 +90,7 @@ export function CartPage() {
         delete next[itemId]
         return next
       })
-      toast.success('Item removed from cart.')
+      toast.success('Đã xóa sản phẩm khỏi giỏ hàng.')
     } catch (requestError) {
       toast.error(getErrorMessage(requestError))
     } finally {
@@ -99,7 +99,7 @@ export function CartPage() {
   }
 
   async function handleClear() {
-    if (!window.confirm('Remove all items from your cart?')) {
+    if (!window.confirm('Bạn có chắc muốn xóa tất cả sản phẩm khỏi giỏ hàng?')) {
       return
     }
 
@@ -108,7 +108,7 @@ export function CartPage() {
       const updatedCart = await clearCartApi()
       setResult({ key: reloadVersion, cart: updatedCart })
       setQuantityDrafts({})
-      toast.success('Cart cleared.')
+      toast.success('Đã làm trống giỏ hàng.')
     } catch (requestError) {
       toast.error(getErrorMessage(requestError))
     } finally {
@@ -120,13 +120,13 @@ export function CartPage() {
     <main className="customer-page">
       <header className="customer-page-header">
         <div>
-          <p className="eyebrow">Customer</p>
-          <h1>Your cart</h1>
+          <p className="eyebrow">Mua sắm</p>
+          <h1>Giỏ hàng</h1>
         </div>
-        <Link className="text-link" to="/">Continue shopping</Link>
+        <Link className="text-link" to="/">Tiếp tục mua sắm</Link>
       </header>
 
-      {isLoading && <p className="loading-state" role="status">Loading cart…</p>}
+      {isLoading && <p className="loading-state" role="status">Đang tải giỏ hàng...</p>}
       {error && (
         <section className="customer-panel">
           <p className="form-error" role="alert">{error}</p>
@@ -135,16 +135,16 @@ export function CartPage() {
             onClick={() => setReloadVersion((version) => version + 1)}
             type="button"
           >
-            Retry
+            Thử lại
           </button>
         </section>
       )}
 
       {!isLoading && !error && cart && cart.items.length === 0 && (
         <section className="customer-panel empty-orders">
-          <h2>Your cart is empty</h2>
-          <p className="page-intro">Choose a product to start an order.</p>
-          <Link className="button button-primary button-link" to="/">Continue shopping</Link>
+          <h2>Giỏ hàng đang trống</h2>
+          <p className="page-intro">Chọn sản phẩm để bắt đầu mua sắm.</p>
+          <Link className="button button-primary button-link" to="/">Tiếp tục mua sắm</Link>
         </section>
       )}
 
@@ -153,18 +153,18 @@ export function CartPage() {
           <section className="customer-panel cart-items-panel">
             {cart.hasUnavailableItems && (
               <p className="form-error" role="alert">
-                Some items are unavailable or exceed current stock. Update or remove them before checkout.
+                Một số sản phẩm hiện không khả dụng hoặc vượt quá số lượng tồn kho. Vui lòng cập nhật hoặc xóa trước khi thanh toán.
               </p>
             )}
             <div className="table-scroll">
               <table className="data-table cart-table">
                 <thead>
                   <tr>
-                    <th>Product</th>
-                    <th>Unit price</th>
-                    <th>Quantity</th>
-                    <th>Line total</th>
-                    <th>Actions</th>
+                    <th>Sản phẩm</th>
+                    <th>Đơn giá</th>
+                    <th>Số lượng</th>
+                    <th>Thành tiền</th>
+                    <th>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -172,13 +172,13 @@ export function CartPage() {
                     <tr key={item.id}>
                       <td>
                         <strong>{item.productName}</strong>
-                        <span className="table-subtext">SKU: {item.sku}</span>
-                        {!item.available && <span className="cart-unavailable">Unavailable</span>}
+                        <span className="table-subtext">Mã SKU: {item.sku}</span>
+                        {!item.available && <span className="cart-unavailable">Không khả dụng</span>}
                       </td>
                       <td>{formatCurrency(item.unitPrice)}</td>
                       <td>
                         <input
-                          aria-label={`Quantity for ${item.productName}`}
+                          aria-label={`Số lượng ${item.productName}`}
                           className="cart-quantity"
                           max={Math.min(1000, item.stock)}
                           min={1}
@@ -191,7 +191,7 @@ export function CartPage() {
                           type="number"
                           value={quantityDrafts[item.id] ?? String(item.quantity)}
                         />
-                        <span className="table-subtext">Stock: {item.stock}</span>
+                        <span className="table-subtext">Tồn kho: {item.stock}</span>
                       </td>
                       <td>{formatCurrency(item.lineTotal)}</td>
                       <td>
@@ -202,7 +202,7 @@ export function CartPage() {
                             onClick={() => void handleUpdate(item.id, item.quantity, item.stock)}
                             type="button"
                           >
-                            {busyItemId === item.id ? 'Saving…' : 'Update'}
+                            {busyItemId === item.id ? 'Đang lưu...' : 'Cập nhật'}
                           </button>
                           <button
                             className="text-button text-button-danger"
@@ -210,7 +210,7 @@ export function CartPage() {
                             onClick={() => void handleRemove(item.id)}
                             type="button"
                           >
-                            Remove
+                            Xóa
                           </button>
                         </div>
                       </td>
@@ -225,17 +225,17 @@ export function CartPage() {
               onClick={() => void handleClear()}
               type="button"
             >
-              {isClearing ? 'Clearing…' : 'Clear cart'}
+              {isClearing ? 'Đang xóa...' : 'Xóa giỏ hàng'}
             </button>
           </section>
 
           <aside className="customer-panel cart-summary">
-            <h2>Summary</h2>
-            <div><span>Items</span><span>{cart.totalQuantity}</span></div>
-            <div className="summary-total"><strong>Subtotal</strong><strong>{formatCurrency(cart.subtotal)}</strong></div>
-            <p className="muted-text">Shipping and discounts are calculated at checkout.</p>
+            <h2>Tóm tắt đơn hàng</h2>
+            <div><span>Tổng số sản phẩm</span><span>{cart.totalQuantity}</span></div>
+            <div className="summary-total"><strong>Tạm tính</strong><strong>{formatCurrency(cart.subtotal)}</strong></div>
+            <p className="muted-text">Phí vận chuyển và ưu đãi sẽ được tính khi thanh toán.</p>
             {hasPendingQuantityChanges && (
-              <p className="form-error" role="alert">Save quantity changes before checkout.</p>
+              <p className="form-error" role="alert">Vui lòng lưu thay đổi số lượng trước khi thanh toán.</p>
             )}
             <Link
               aria-disabled={checkoutBlocked}
@@ -247,7 +247,7 @@ export function CartPage() {
               }}
               to="/checkout"
             >
-              Continue to checkout
+              Tiến hành thanh toán
             </Link>
           </aside>
         </div>

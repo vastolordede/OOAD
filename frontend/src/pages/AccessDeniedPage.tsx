@@ -5,10 +5,10 @@ export function AccessDeniedPage() {
     <main className="auth-page">
       <section className="auth-card">
         <p className="eyebrow">403</p>
-        <h1>Access denied</h1>
-        <p className="page-intro">This area is available to administrators only.</p>
+        <h1>Bạn không có quyền truy cập</h1>
+        <p className="page-intro">Khu vực này chỉ dành cho quản trị viên.</p>
         <Link className="button button-primary button-link" to="/">
-          Return home
+          Về trang chủ
         </Link>
       </section>
     </main>

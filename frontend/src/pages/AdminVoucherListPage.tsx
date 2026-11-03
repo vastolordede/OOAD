@@ -6,6 +6,7 @@ import type { CatalogStatus, VoucherResponse } from '../types/voucher'
 import { useToast } from '../hooks/useToast'
 import { formatCurrency } from '../utils/formatCurrency'
 import { getErrorMessage } from '../utils/getErrorMessage'
+import { catalogStatusLabel, formatDate } from '../utils/localization'
 
 interface VoucherListState {
   key: string
@@ -65,7 +66,7 @@ export function AdminVoucherListPage() {
 
     try {
       await updateVoucherStatusApi(voucher.id, nextStatus)
-      toast.success(`Voucher ${voucher.code} set to ${nextStatus.toLowerCase()}.`)
+      toast.success(`Mã giảm giá ${voucher.code} đã chuyển sang trạng thái ${catalogStatusLabel(nextStatus).toLowerCase()}.`)
       setReloadVersion((version) => version + 1)
     } catch (error) {
       toast.error(getErrorMessage(error))
@@ -83,34 +84,34 @@ export function AdminVoucherListPage() {
     <section className="page-section admin-voucher-page">
       <header className="section-heading">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1>Voucher management</h1>
+          <p className="eyebrow">Quản trị</p>
+          <h1>Quản lý mã giảm giá</h1>
         </div>
         <Link className="button button-primary button-link" to="/admin/vouchers/new">
-          Create voucher
+          Tạo mã giảm giá
         </Link>
       </header>
 
       <form className="voucher-filters" onSubmit={handleSearch}>
         <label>
-          Search code or description
+          Tìm mã hoặc mô tả
           <input
             onChange={(event) => setSearchDraft(event.target.value)}
             value={searchDraft}
           />
         </label>
         <label>
-          Status
+          Trạng thái
           <select onChange={(event) => handleStatusFilter(event.target.value)} value={status}>
-            <option value="">All statuses</option>
-            <option value="ACTIVE">Active</option>
-            <option value="INACTIVE">Inactive</option>
+            <option value="">Tất cả trạng thái</option>
+            <option value="ACTIVE">Đang hoạt động</option>
+            <option value="INACTIVE">Ngừng hoạt động</option>
           </select>
         </label>
-        <button className="button button-secondary" type="submit">Search</button>
+        <button className="button button-secondary" type="submit">Tìm kiếm</button>
       </form>
 
-      {isLoading && <p className="loading-state" role="status">Loading vouchers…</p>}
+      {isLoading && <p className="loading-state" role="status">Đang tải mã giảm giá...</p>}
       {pageError && (
         <div className="form-error" role="alert">
           {pageError}
@@ -119,12 +120,12 @@ export function AdminVoucherListPage() {
             onClick={() => setReloadVersion((version) => version + 1)}
             type="button"
           >
-            Retry
+            Thử lại
           </button>
         </div>
       )}
       {!isLoading && !pageError && pageData?.content.length === 0 && (
-        <p className="empty-state">No vouchers match these filters.</p>
+        <p className="empty-state">Không có mã giảm giá phù hợp với bộ lọc.</p>
       )}
 
       {!isLoading && !pageError && pageData && pageData.content.length > 0 && (
@@ -133,13 +134,13 @@ export function AdminVoucherListPage() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Code</th>
-                  <th>Discount</th>
-                  <th>Minimum order</th>
-                  <th>Usage</th>
-                  <th>Validity</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                  <th>Mã</th>
+                  <th>Mức giảm</th>
+                  <th>Đơn tối thiểu</th>
+                  <th>Lượt sử dụng</th>
+                  <th>Thời hạn</th>
+                  <th>Trạng thái</th>
+                  <th>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -154,26 +155,26 @@ export function AdminVoucherListPage() {
                         ? `${voucher.discountValue}%`
                         : formatCurrency(voucher.discountValue)}
                       {voucher.maxDiscount !== null && (
-                        <span className="table-subtext">Max {formatCurrency(voucher.maxDiscount)}</span>
+                        <span className="table-subtext">Tối đa {formatCurrency(voucher.maxDiscount)}</span>
                       )}
                     </td>
                     <td>{formatCurrency(voucher.minOrderValue)}</td>
                     <td>{voucher.usedCount} / {voucher.usageLimit ?? '∞'}</td>
                     <td>
-                      <span>{new Date(voucher.startDate).toLocaleDateString()}</span>
-                      <span className="table-subtext">to {new Date(voucher.endDate).toLocaleDateString()}</span>
+                      <span>{formatDate(voucher.startDate)}</span>
+                      <span className="table-subtext">đến {formatDate(voucher.endDate)}</span>
                     </td>
-                    <td><span className={`status-badge status-${voucher.status.toLowerCase()}`}>{voucher.status}</span></td>
+                    <td><span className={`status-badge status-${voucher.status.toLowerCase()}`}>{catalogStatusLabel(voucher.status)}</span></td>
                     <td>
                       <div className="table-actions">
-                        <Link className="text-link" to={`/admin/vouchers/${voucher.id}/edit`}>Edit</Link>
+                        <Link className="text-link" to={`/admin/vouchers/${voucher.id}/edit`}>Chỉnh sửa</Link>
                         <button
                           className="text-button"
                           disabled={updatingId === voucher.id}
                           onClick={() => void handleStatusUpdate(voucher)}
                           type="button"
                         >
-                          {updatingId === voucher.id ? 'Updating…' : voucher.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                          {updatingId === voucher.id ? 'Đang cập nhật...' : voucher.status === 'ACTIVE' ? 'Ngừng hoạt động' : 'Kích hoạt'}
                         </button>
                       </div>
                     </td>
@@ -182,23 +183,23 @@ export function AdminVoucherListPage() {
               </tbody>
             </table>
           </div>
-          <nav aria-label="Voucher pages" className="pagination">
+          <nav aria-label="Các trang mã giảm giá" className="pagination">
             <button
               className="button button-secondary"
               disabled={pageData.first}
               onClick={() => setPageNumber((current) => Math.max(0, current - 1))}
               type="button"
             >
-              Previous
+              Trước
             </button>
-            <span>Page {pageData.page + 1} of {Math.max(pageData.totalPages, 1)}</span>
+            <span>Trang {pageData.page + 1} / {Math.max(pageData.totalPages, 1)}</span>
             <button
               className="button button-secondary"
               disabled={pageData.last}
               onClick={() => setPageNumber((current) => current + 1)}
               type="button"
             >
-              Next
+              Sau
             </button>
           </nav>
         </>

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { translateErrorMessage, translateFieldName } from './localization'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -13,25 +14,29 @@ export function getErrorMessage(error: unknown): string {
       const data = responseBody.data
 
       if (typeof message === 'string' && isRecord(data) && isRecord(data.fields)) {
-        const fieldMessages = Object.values(data.fields).filter(
-          (value): value is string => typeof value === 'string',
-        )
-        return [message, ...fieldMessages].join(': ')
+        return [
+          translateErrorMessage(message),
+          ...Object.entries(data.fields)
+            .filter((entry): entry is [string, string] => typeof entry[1] === 'string')
+            .map(([field, fieldMessage]) =>
+              `${translateFieldName(field)}: ${translateErrorMessage(fieldMessage)}`,
+            ),
+        ].join(' ')
       }
 
       if (typeof message === 'string' && message.length > 0) {
-        return message
+        return translateErrorMessage(message)
       }
     }
 
     return error.response
-      ? `Request failed with status ${error.response.status}.`
-      : 'Unable to connect to the server. Check the API URL and try again.'
+      ? `Yêu cầu không thành công (mã lỗi ${error.response.status}).`
+      : 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra địa chỉ API và thử lại.'
   }
 
   if (error instanceof Error) {
-    return error.message
+    return translateErrorMessage(error.message)
   }
 
-  return 'An unexpected error occurred.'
+  return 'Đã xảy ra lỗi không mong muốn.'
 }

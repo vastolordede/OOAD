@@ -17,7 +17,7 @@ export function ResetPasswordPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (newPassword !== confirmPassword) {
-      toast.error('Passwords do not match.')
+      toast.error('Mật khẩu xác nhận không khớp.')
       return
     }
 
@@ -25,7 +25,7 @@ export function ResetPasswordPage() {
     setIsSubmitting(true)
     try {
       await resetPasswordApi(payload)
-      toast.success('Password reset successfully. Please sign in.')
+      toast.success('Đặt lại mật khẩu thành công. Vui lòng đăng nhập.')
       navigate('/login', { replace: true })
     } catch (error) {
       toast.error(getErrorMessage(error))
@@ -37,21 +37,21 @@ export function ResetPasswordPage() {
   return (
     <main className="auth-page">
       <section className="auth-card">
-        <Link className="auth-back-link" to="/">OOAD Cosmetics</Link>
-        <p className="eyebrow">Account recovery</p>
-        <h1>Reset password</h1>
+        <Link className="auth-back-link" to="/">Mỹ Phẩm Tơ Ràn</Link>
+        <p className="eyebrow">Khôi phục tài khoản</p>
+        <h1>Đặt lại mật khẩu</h1>
         <form className="auth-form" onSubmit={handleSubmit}>
-          <label htmlFor="resetToken">Reset token</label>
+          <label htmlFor="resetToken">Mã đặt lại mật khẩu</label>
           <input autoComplete="one-time-code" id="resetToken" onChange={(event) => setToken(event.target.value)} required value={token} />
-          <label htmlFor="newPassword">New password</label>
+          <label htmlFor="newPassword">Mật khẩu mới</label>
           <input autoComplete="new-password" id="newPassword" minLength={8} onChange={(event) => setNewPassword(event.target.value)} required type="password" value={newPassword} />
-          <label htmlFor="confirmNewPassword">Confirm new password</label>
+          <label htmlFor="confirmNewPassword">Xác nhận mật khẩu mới</label>
           <input autoComplete="new-password" id="confirmNewPassword" onChange={(event) => setConfirmPassword(event.target.value)} required type="password" value={confirmPassword} />
           <button className="button button-primary button-full" disabled={isSubmitting} type="submit">
-            {isSubmitting ? 'Resetting…' : 'Reset password'}
+            {isSubmitting ? 'Đang cập nhật...' : 'Đặt lại mật khẩu'}
           </button>
         </form>
-        <p className="auth-secondary-link"><Link className="text-link" to="/login">Back to sign in</Link></p>
+        <p className="auth-secondary-link"><Link className="text-link" to="/login">Quay lại đăng nhập</Link></p>
       </section>
     </main>
   )

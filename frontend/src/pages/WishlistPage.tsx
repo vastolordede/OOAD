@@ -47,7 +47,7 @@ export function WishlistPage() {
     setRemovingProductId(productId)
     try {
       await removeWishlistItemApi(productId)
-      toast.success('Product removed from wishlist.')
+      toast.success('Đã xóa sản phẩm khỏi danh sách yêu thích.')
       if (page?.content.length === 1 && pageNumber > 0) {
         setPageNumber((current) => current - 1)
       } else {
@@ -64,13 +64,13 @@ export function WishlistPage() {
     <main className="customer-page">
       <header className="customer-page-header">
         <div>
-          <p className="eyebrow">Customer</p>
-          <h1>Wishlist</h1>
+          <p className="eyebrow">Tài khoản</p>
+          <h1>Sản phẩm yêu thích</h1>
         </div>
-        <Link className="text-link" to="/">Continue shopping</Link>
+        <Link className="text-link" to="/">Tiếp tục mua sắm</Link>
       </header>
 
-      {isLoading && <p className="loading-state" role="status">Loading wishlist…</p>}
+      {isLoading && <p className="loading-state" role="status">Đang tải danh sách yêu thích...</p>}
       {error && (
         <section className="customer-panel">
           <p className="form-error" role="alert">{error}</p>
@@ -79,15 +79,15 @@ export function WishlistPage() {
             onClick={() => setReloadVersion((version) => version + 1)}
             type="button"
           >
-            Retry
+            Thử lại
           </button>
         </section>
       )}
       {!isLoading && !error && page?.content.length === 0 && (
         <section className="customer-panel empty-orders">
-          <h2>Your wishlist is empty</h2>
-          <p className="page-intro">Save products you want to revisit here.</p>
-          <Link className="button button-primary button-link" to="/">Browse products</Link>
+          <h2>Danh sách yêu thích đang trống</h2>
+          <p className="page-intro">Lưu những sản phẩm bạn muốn xem lại tại đây.</p>
+          <Link className="button button-primary button-link" to="/">Khám phá sản phẩm</Link>
         </section>
       )}
       {!isLoading && !error && page && page.content.length > 0 && (
@@ -98,43 +98,43 @@ export function WishlistPage() {
                 <Link className="wishlist-image" to={`/products/${item.productId}`}>
                   {item.imageUrl
                     ? <img alt="" src={item.imageUrl} />
-                    : <span>No image</span>}
+                    : <span>Chưa có hình ảnh</span>}
                 </Link>
                 <p className="eyebrow">{item.brandName}</p>
                 <h2><Link to={`/products/${item.productId}`}>{item.productName}</Link></h2>
-                <p>{item.minPrice === null ? 'Price unavailable' : `From ${formatCurrency(item.minPrice)}`}</p>
-                {!item.available && <p className="form-error">This product is currently unavailable.</p>}
+                <p>{item.minPrice === null ? 'Chưa có giá' : `Từ ${formatCurrency(item.minPrice)}`}</p>
+                {!item.available && <p className="form-error">Sản phẩm hiện không khả dụng.</p>}
                 <div className="customer-review-actions">
-                  <Link className="button button-primary" to={`/products/${item.productId}`}>View product</Link>
+                  <Link className="button button-primary" to={`/products/${item.productId}`}>Xem sản phẩm</Link>
                   <button
                     className="button button-secondary"
                     disabled={removingProductId === item.productId}
                     onClick={() => void handleRemove(item.productId)}
                     type="button"
                   >
-                    {removingProductId === item.productId ? 'Removing…' : 'Remove'}
+                    {removingProductId === item.productId ? 'Đang xóa...' : 'Xóa'}
                   </button>
                 </div>
               </article>
             ))}
           </div>
-          <nav aria-label="Wishlist pages" className="pagination">
+          <nav aria-label="Các trang yêu thích" className="pagination">
             <button
               className="button button-secondary"
               disabled={page.first}
               onClick={() => setPageNumber((current) => Math.max(0, current - 1))}
               type="button"
             >
-              Previous
+              Trước
             </button>
-            <span>Page {page.page + 1} of {Math.max(page.totalPages, 1)}</span>
+            <span>Trang {page.page + 1} / {Math.max(page.totalPages, 1)}</span>
             <button
               className="button button-secondary"
               disabled={page.last}
               onClick={() => setPageNumber((current) => current + 1)}
               type="button"
             >
-              Next
+              Sau
             </button>
           </nav>
         </>

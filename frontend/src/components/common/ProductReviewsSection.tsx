@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getProductReviewsApi } from '../../api/reviews.api'
 import type { ProductReviewsResponse } from '../../types/review'
 import { getErrorMessage } from '../../utils/getErrorMessage'
+import { formatDate } from '../../utils/localization'
 
 interface ProductReviewState {
   key: string
@@ -42,18 +43,18 @@ export function ProductReviewsSection({ productId }: { productId: number }) {
     <section className="product-reviews customer-panel">
       <header className="section-heading">
         <div>
-          <p className="eyebrow">Customer feedback</p>
-          <h2>Reviews</h2>
+          <p className="eyebrow">Phản hồi khách hàng</p>
+          <h2>Đánh giá sản phẩm</h2>
         </div>
         {data && (
           <p className="review-summary">
             <strong>{data.averageRating.toFixed(1)} / 5</strong>
-            <span>{data.reviewCount} reviews</span>
+            <span>{data.reviewCount} đánh giá</span>
           </p>
         )}
       </header>
 
-      {isLoading && <p className="loading-state" role="status">Loading reviews…</p>}
+      {isLoading && <p className="loading-state" role="status">Đang tải đánh giá...</p>}
       {error && (
         <div>
           <p className="form-error" role="alert">{error}</p>
@@ -62,12 +63,12 @@ export function ProductReviewsSection({ productId }: { productId: number }) {
             onClick={() => setReloadVersion((version) => version + 1)}
             type="button"
           >
-            Retry
+            Thử lại
           </button>
         </div>
       )}
       {!isLoading && !error && data?.reviews.content.length === 0 && (
-        <p className="empty-state">No reviews yet.</p>
+        <p className="empty-state">Chưa có đánh giá nào.</p>
       )}
       {!isLoading && !error && data && data.reviews.content.length > 0 && (
         <>
@@ -78,30 +79,30 @@ export function ProductReviewsSection({ productId }: { productId: number }) {
                   <strong>{review.reviewerName}</strong>
                   <span>{review.rating} / 5</span>
                   <time dateTime={review.createdAt}>
-                    {new Date(review.createdAt).toLocaleDateString()}
+                    {formatDate(review.createdAt)}
                   </time>
                 </div>
                 {review.comment && <p>{review.comment}</p>}
               </li>
             ))}
           </ul>
-          <nav aria-label="Review pages" className="pagination">
+          <nav aria-label="Các trang đánh giá" className="pagination">
             <button
               className="button button-secondary"
               disabled={data.reviews.first}
               onClick={() => setPageNumber((current) => Math.max(0, current - 1))}
               type="button"
             >
-              Previous
+              Trước
             </button>
-            <span>Page {data.reviews.page + 1} of {Math.max(data.reviews.totalPages, 1)}</span>
+            <span>Trang {data.reviews.page + 1} / {Math.max(data.reviews.totalPages, 1)}</span>
             <button
               className="button button-secondary"
               disabled={data.reviews.last}
               onClick={() => setPageNumber((current) => current + 1)}
               type="button"
             >
-              Next
+              Sau
             </button>
           </nav>
         </>

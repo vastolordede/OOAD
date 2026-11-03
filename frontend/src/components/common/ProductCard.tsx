@@ -6,7 +6,7 @@ export function ProductCard({ product }: { product: ProductSummaryResponse }) {
   return (
     <article className="product-card">
       <Link
-        aria-label={`View ${product.name}`}
+        aria-label={`Xem ${product.name}`}
         className="product-card-link"
         to={`/products/${product.id}`}
       >
@@ -23,9 +23,9 @@ export function ProductCard({ product }: { product: ProductSummaryResponse }) {
         <p className="product-card-meta">{product.brandName} · {product.categoryName}</p>
         <h2>{product.name}</h2>
         <p className="product-card-price">
-          {product.minPrice === null ? 'Contact for price' : formatCurrency(product.minPrice)}
+          {product.minPrice === null ? 'Liên hệ để biết giá' : formatCurrency(product.minPrice)}
         </p>
-        <span className="button button-secondary product-card-action">View details</span>
+        <span className="button button-secondary product-card-action">Xem chi tiết</span>
       </Link>
     </article>
   )

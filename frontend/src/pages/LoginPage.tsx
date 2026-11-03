@@ -18,7 +18,7 @@ export function LoginPage() {
 
     try {
       const role = await login({ email, password })
-      toast.success('Signed in successfully.')
+      toast.success('Đăng nhập thành công.')
       navigate(role === 'ADMIN' ? '/admin/dashboard' : '/', { replace: true })
     } catch (loginError) {
       toast.error(getErrorMessage(loginError))
@@ -31,13 +31,13 @@ export function LoginPage() {
     <main className="auth-page">
       <section className="auth-card">
         <Link className="auth-back-link" to="/">
-          OOAD Cosmetics
+          Mỹ Phẩm Tơ Ràn
         </Link>
-        <p className="eyebrow">Account</p>
-        <h1>Sign in</h1>
-        <p className="page-intro">Use your account credentials to continue.</p>
+        <p className="eyebrow">Tài khoản</p>
+        <h1>Đăng nhập</h1>
+        <p className="page-intro">Nhập thông tin tài khoản để tiếp tục.</p>
         <form className="auth-form" onSubmit={handleSubmit}>
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">Địa chỉ email</label>
           <input
             autoComplete="email"
             id="email"
@@ -46,7 +46,7 @@ export function LoginPage() {
             type="email"
             value={email}
           />
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">Mật khẩu</label>
           <input
             autoComplete="current-password"
             id="password"
@@ -56,12 +56,12 @@ export function LoginPage() {
             value={password}
           />
           <button className="button button-primary button-full" disabled={isSubmitting} type="submit">
-            {isSubmitting ? 'Signing in…' : 'Sign in'}
+            {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>
         </form>
         <div className="auth-links">
-          <Link className="text-link" to="/register">Create an account</Link>
-          <Link className="text-link" to="/forgot-password">Forgot password?</Link>
+          <Link className="text-link" to="/register">Tạo tài khoản mới</Link>
+          <Link className="text-link" to="/forgot-password">Quên mật khẩu?</Link>
         </div>
       </section>
     </main>

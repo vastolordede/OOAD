@@ -4,7 +4,7 @@ React + TypeScript + Vite frontend for customer account, catalog, checkout/order
 
 ## Local development
 
-1. Copy `.env.example` to `.env` in this directory. The supplied local value targets the Spring Boot API at `http://localhost:8080/api`.
+1. Start the Spring Boot backend on port `8080`.
 2. Install packages and start Vite:
 
    ```powershell
@@ -19,7 +19,7 @@ React + TypeScript + Vite frontend for customer account, catalog, checkout/order
    npm run lint
    ```
 
-`VITE_API_URL` must point to the API root that includes `/api`. No API URL or token is embedded in feature code. When the variable is missing, UI routes remain available and API requests fail with an explicit configuration error.
+During local development, Vite forwards `/api` requests to `http://localhost:8080`, so no `.env` file is needed. To use a different API host or a production deployment, optionally set `VITE_API_URL` to the API root, including `/api`.
 
 ## Routes
 

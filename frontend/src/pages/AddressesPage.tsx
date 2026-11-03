@@ -103,7 +103,7 @@ export function AddressesPage() {
           : updated
       })
       resetForm()
-      toast.success(editingId === null ? 'Address added.' : 'Address updated.')
+      toast.success(editingId === null ? 'Đã thêm địa chỉ.' : 'Đã cập nhật địa chỉ.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     } finally {
@@ -121,7 +121,7 @@ export function AddressesPage() {
           defaultAddress: address.id === updatedDefault.id,
         })),
       )
-      toast.success('Default address updated.')
+      toast.success('Đã cập nhật địa chỉ mặc định.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     } finally {
@@ -130,14 +130,14 @@ export function AddressesPage() {
   }
 
   async function handleDelete(address: AddressResponse) {
-    if (!window.confirm(`Delete the address for ${address.receiverName}?`)) return
+    if (!window.confirm(`Bạn có chắc muốn xóa địa chỉ của ${address.receiverName}?`)) return
 
     setWorkingId(address.id)
     try {
       await deleteAddressApi(address.id)
       setAddresses((current) => current.filter((item) => item.id !== address.id))
       if (editingId === address.id) resetForm()
-      toast.success('Address deleted.')
+      toast.success('Đã xóa địa chỉ.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     } finally {
@@ -149,73 +149,73 @@ export function AddressesPage() {
     <main className="customer-page">
       <header className="customer-page-header">
         <div>
-          <p className="eyebrow">Account</p>
-          <h1>My addresses</h1>
-          <p className="page-intro">Manage the addresses used for your deliveries.</p>
+          <p className="eyebrow">Tài khoản</p>
+          <h1>Địa chỉ nhận hàng</h1>
+          <p className="page-intro">Quản lý các địa chỉ dùng để giao đơn hàng của bạn.</p>
         </div>
       </header>
-      {isLoading && <LoadingState message="Loading your addresses…" />}
+      {isLoading && <LoadingState message="Đang tải địa chỉ..." />}
       {loadError && <ErrorState message={loadError} onRetry={handleRetry} />}
       {!isLoading && !loadError && addresses.length === 0 && (
-        <EmptyState title="No addresses yet" description="Add an address to make checkout easier." />
+        <EmptyState title="Bạn chưa có địa chỉ nhận hàng" description="Thêm địa chỉ để thanh toán nhanh chóng hơn." />
       )}
       {!isLoading && !loadError && addresses.length > 0 && (
-        <section aria-label="Saved addresses" className="address-management-list">
+        <section aria-label="Địa chỉ đã lưu" className="address-management-list">
           {addresses.map((address) => (
             <article className="customer-panel managed-address" key={address.id}>
               <div>
-                <h2>{address.receiverName} {address.defaultAddress && <span className="default-tag">Default</span>}</h2>
+                <h2>{address.receiverName} {address.defaultAddress && <span className="default-tag">Mặc định</span>}</h2>
                 <p>{address.phone}</p>
                 <p>{formatAddress(address)}</p>
               </div>
               <div className="address-management-actions">
-                <button className="button button-secondary" onClick={() => beginEdit(address)} type="button">Edit</button>
+                <button className="button button-secondary" onClick={() => beginEdit(address)} type="button">Chỉnh sửa</button>
                 {!address.defaultAddress && (
-                  <button className="button button-secondary" disabled={workingId === address.id} onClick={() => void handleSetDefault(address.id)} type="button">Set Default</button>
+                  <button className="button button-secondary" disabled={workingId === address.id} onClick={() => void handleSetDefault(address.id)} type="button">Đặt làm mặc định</button>
                 )}
-                <button className="button button-secondary button-danger" disabled={workingId === address.id} onClick={() => void handleDelete(address)} type="button">Delete</button>
+                <button className="button button-secondary button-danger" disabled={workingId === address.id} onClick={() => void handleDelete(address)} type="button">Xóa</button>
               </div>
             </article>
           ))}
         </section>
       )}
       <section className="customer-panel address-management-form" id="addressForm">
-        <h2>{editingId === null ? 'Add an address' : 'Edit address'}</h2>
+        <h2>{editingId === null ? 'Thêm địa chỉ' : 'Chỉnh sửa địa chỉ'}</h2>
         <form className="address-form-grid" onSubmit={handleSubmit}>
           <label>
-            Receiver name
+            Tên người nhận
             <input autoComplete="name" onChange={(event) => setForm((current) => ({ ...current, receiverName: event.target.value }))} required value={form.receiverName} />
           </label>
           <label>
-            Phone
+            Số điện thoại
             <input autoComplete="tel" onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} required type="tel" value={form.phone} />
           </label>
           <label className="address-form-wide">
-            Address line
+            Địa chỉ
             <input autoComplete="address-line1" onChange={(event) => setForm((current) => ({ ...current, addressLine: event.target.value }))} required value={form.addressLine} />
           </label>
           <label>
-            Ward
+            Phường / xã
             <input onChange={(event) => setForm((current) => ({ ...current, ward: event.target.value }))} value={form.ward ?? ''} />
           </label>
           <label>
-            District
+            Quận / huyện
             <input onChange={(event) => setForm((current) => ({ ...current, district: event.target.value }))} value={form.district ?? ''} />
           </label>
           <label>
-            City
+            Tỉnh / thành phố
             <input autoComplete="address-level1" onChange={(event) => setForm((current) => ({ ...current, city: event.target.value }))} required value={form.city} />
           </label>
           <label className="checkbox-option address-form-wide">
             <input checked={form.defaultAddress} onChange={(event) => setForm((current) => ({ ...current, defaultAddress: event.target.checked }))} type="checkbox" />
-            Set as default address
+            Đặt làm địa chỉ mặc định
           </label>
           <div className="address-form-actions address-form-wide">
             <button className="button button-primary" disabled={isSaving} type="submit">
-              {isSaving ? 'Saving…' : editingId === null ? 'Add address' : 'Save changes'}
+              {isSaving ? 'Đang lưu...' : editingId === null ? 'Thêm địa chỉ' : 'Lưu thay đổi'}
             </button>
             {editingId !== null && (
-              <button className="button button-secondary" onClick={resetForm} type="button">Cancel edit</button>
+              <button className="button button-secondary" onClick={resetForm} type="button">Hủy chỉnh sửa</button>
             )}
           </div>
         </form>

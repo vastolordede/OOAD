@@ -16,18 +16,18 @@ export function Pagination({
   const isLastPage = !hasPages || page >= totalPages - 1
 
   return (
-    <nav aria-label="Product pages" className="pagination catalog-pagination">
+    <nav aria-label="Các trang" className="pagination catalog-pagination">
       <button
         className="button button-secondary"
         disabled={isFirstPage || !hasPages}
         onClick={() => onPageChange(Math.max(0, page - 1))}
         type="button"
       >
-        Previous
+        Trước
       </button>
       <span aria-live="polite" className="pagination-summary">
-        {hasPages ? `Page ${page + 1} of ${totalPages}` : 'No pages'}
-        {totalElements !== undefined && ` · ${totalElements} products`}
+        {hasPages ? `Trang ${page + 1} / ${totalPages}` : 'Không có trang nào'}
+        {totalElements !== undefined && ` · ${totalElements} mục`}
       </span>
       <button
         className="button button-secondary"
@@ -35,7 +35,7 @@ export function Pagination({
         onClick={() => onPageChange(page + 1)}
         type="button"
       >
-        Next
+        Sau
       </button>
     </nav>
   )

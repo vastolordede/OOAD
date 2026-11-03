@@ -26,7 +26,7 @@ function ToastItem({
     >
       <span>{toast.message}</span>
       <button
-        aria-label="Dismiss notification"
+        aria-label="Đóng thông báo"
         className="toast-dismiss"
         onClick={() => onDismiss(toast.id)}
         type="button"
@@ -62,7 +62,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div aria-label="Notifications" className="toast-viewport">
+      <div aria-label="Thông báo" className="toast-viewport">
         {toasts.map((toast) => (
           <ToastItem key={toast.id} onDismiss={dismiss} toast={toast} />
         ))}

@@ -9,6 +9,7 @@ import type { RevenuePointResponse, TopProductResponse } from '../types/dashboar
 import type { OrderStatus } from '../types/commerce'
 import { formatCurrency } from '../utils/formatCurrency'
 import { getErrorMessage } from '../utils/getErrorMessage'
+import { formatDate, orderStatusLabel } from '../utils/localization'
 
 const orderStatuses: OrderStatus[] = [
   'PENDING',
@@ -108,8 +109,8 @@ export function AdminDashboardPage() {
     <section className="page-section admin-dashboard-page">
       <header className="section-heading">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1>Dashboard</h1>
+          <p className="eyebrow">Quản trị</p>
+          <h1>Tổng quan</h1>
         </div>
         <button
           className="button button-secondary"
@@ -117,11 +118,11 @@ export function AdminDashboardPage() {
           onClick={() => setReloadVersion((version) => version + 1)}
           type="button"
         >
-          Refresh
+          Làm mới
         </button>
       </header>
 
-      {isLoading && <p className="loading-state" role="status">Loading dashboard…</p>}
+      {isLoading && <p className="loading-state" role="status">Đang tải dữ liệu tổng quan...</p>}
       {error && (
         <div>
           <p className="form-error" role="alert">{error}</p>
@@ -130,7 +131,7 @@ export function AdminDashboardPage() {
             onClick={() => setReloadVersion((version) => version + 1)}
             type="button"
           >
-            Retry
+            Thử lại
           </button>
         </div>
       )}
@@ -139,30 +140,30 @@ export function AdminDashboardPage() {
         <>
           <div className="dashboard-cards">
             <article className="dashboard-card">
-              <span>Total customers</span>
+              <span>Tổng khách hàng</span>
               <strong>{summary.totalCustomers.toLocaleString()}</strong>
             </article>
             <article className="dashboard-card">
-              <span>Total products</span>
+              <span>Tổng sản phẩm</span>
               <strong>{summary.totalProducts.toLocaleString()}</strong>
             </article>
             <article className="dashboard-card">
-              <span>Total orders</span>
+              <span>Tổng đơn hàng</span>
               <strong>{summary.totalOrders.toLocaleString()}</strong>
             </article>
             <article className="dashboard-card">
-              <span>Revenue · delivered orders</span>
+              <span>Doanh thu · đơn đã giao</span>
               <strong>{formatCurrency(summary.totalRevenue)}</strong>
             </article>
           </div>
 
           <div className="dashboard-widgets">
             <section className="dashboard-widget">
-              <h2>Orders by status</h2>
+              <h2>Đơn hàng theo trạng thái</h2>
               <div className="status-counts">
                 {orderStatuses.map((status) => (
                   <div className="status-count" key={status}>
-                    <span className={`status-badge status-${status.toLowerCase()}`}>{status}</span>
+                    <span className={`status-badge status-${status.toLowerCase()}`}>{orderStatusLabel(status)}</span>
                     <strong>{(summary.ordersByStatus[status] ?? 0).toLocaleString()}</strong>
                   </div>
                 ))}
@@ -171,19 +172,19 @@ export function AdminDashboardPage() {
 
             <section className="dashboard-widget">
               <header className="section-heading">
-                <h2>Low stock</h2>
-                <span className="muted-text">At or below {summary.lowStockThreshold} units</span>
+                <h2>Sắp hết hàng</h2>
+                <span className="muted-text">Còn không quá {summary.lowStockThreshold} sản phẩm</span>
               </header>
               {summary.lowStockVariants.length === 0 ? (
-                <p className="empty-state">No active variants are below the threshold.</p>
+                <p className="empty-state">Không có phân loại đang hoạt động nào dưới ngưỡng tồn kho.</p>
               ) : (
                 <div className="table-scroll">
                   <table className="data-table">
                     <thead>
                       <tr>
-                        <th>Product</th>
-                        <th>SKU</th>
-                        <th>Stock</th>
+                        <th>Sản phẩm</th>
+                        <th>Mã SKU</th>
+                        <th>Tồn kho</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -203,8 +204,8 @@ export function AdminDashboardPage() {
 
           <div className="dashboard-widgets dashboard-report-widgets">
             <section className="dashboard-widget">
-              <h2>Revenue · last 30 days</h2>
-              {revenueLoading && <p className="loading-state" role="status">Loading revenue…</p>}
+              <h2>Doanh thu · 30 ngày gần đây</h2>
+              {revenueLoading && <p className="loading-state" role="status">Đang tải doanh thu...</p>}
               {revenueError && (
                 <div>
                   <p className="form-error" role="alert">{revenueError}</p>
@@ -213,15 +214,15 @@ export function AdminDashboardPage() {
                     onClick={() => setReloadVersion((version) => version + 1)}
                     type="button"
                   >
-                    Retry reports
+                    Thử tải lại báo cáo
                   </button>
                 </div>
               )}
-              {revenue && revenue.length === 0 && <p className="empty-state">No revenue data available.</p>}
+              {revenue && revenue.length === 0 && <p className="empty-state">Chưa có dữ liệu doanh thu.</p>}
               {revenue && revenue.length > 0 && (
                 <>
                   <div
-                    aria-label="Daily delivered-order revenue chart"
+                    aria-label="Biểu đồ doanh thu đơn hàng đã giao theo ngày"
                     className="revenue-chart"
                     role="img"
                   >
@@ -229,24 +230,24 @@ export function AdminDashboardPage() {
                       <div
                         className="revenue-chart-column"
                         key={point.period}
-                        title={`${point.period}: ${formatCurrency(point.revenue)} · ${point.orderCount} orders`}
+                        title={`${formatDate(point.period)}: ${formatCurrency(point.revenue)} · ${point.orderCount} đơn hàng`}
                       >
                         <span className="revenue-chart-bar" style={{ height: revenueBarHeight(point.revenue, maximumRevenue) }} />
                         <span className="revenue-chart-label">{point.period.slice(-2)}</span>
                       </div>
                     ))}
                   </div>
-                  <p className="muted-text">Daily delivered-order revenue; hover a bar for its total.</p>
+                  <p className="muted-text">Doanh thu đơn hàng đã giao theo ngày; di chuột để xem tổng tiền.</p>
                 </>
               )}
             </section>
 
             <section className="dashboard-widget">
-              <h2>Top selling products</h2>
-              {topProductsLoading && <p className="loading-state" role="status">Loading top products…</p>}
+              <h2>Sản phẩm bán chạy</h2>
+              {topProductsLoading && <p className="loading-state" role="status">Đang tải sản phẩm bán chạy...</p>}
               {topProductsError && <p className="form-error" role="alert">{topProductsError}</p>}
               {topProducts && topProducts.length === 0 && (
-                <p className="empty-state">No delivered product sales yet.</p>
+                <p className="empty-state">Chưa có sản phẩm nào được giao thành công.</p>
               )}
               {topProducts && topProducts.length > 0 && (
                 <ol className="top-products-chart">
@@ -255,7 +256,7 @@ export function AdminDashboardPage() {
                       <li key={product.productId}>
                         <div className="top-product-label">
                           <strong>{product.productName}</strong>
-                          <span>{product.quantitySold.toLocaleString()} sold · {formatCurrency(product.revenue)}</span>
+                          <span>Đã bán {product.quantitySold.toLocaleString()} · {formatCurrency(product.revenue)}</span>
                         </div>
                         <span
                           aria-hidden="true"
@@ -275,7 +276,7 @@ export function AdminDashboardPage() {
                   onClick={() => setReloadVersion((version) => version + 1)}
                   type="button"
                 >
-                  Retry reports
+                  Thử tải lại báo cáo
                 </button>
               )}
             </section>

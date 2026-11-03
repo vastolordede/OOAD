@@ -5,6 +5,7 @@ import type { PageResponse } from '../types/api'
 import type { ReviewResponse } from '../types/review'
 import { useToast } from '../hooks/useToast'
 import { getErrorMessage } from '../utils/getErrorMessage'
+import { formatDateTime, reviewStatusLabel } from '../utils/localization'
 
 interface ReviewsResult {
   key: string
@@ -56,7 +57,7 @@ export function MyReviewsPage() {
     event.preventDefault()
     const numericRating = Number(rating)
     if (!Number.isInteger(numericRating) || numericRating < 1 || numericRating > 5) {
-      toast.error('Choose a rating from 1 to 5.')
+      toast.error('Vui lòng chọn mức đánh giá từ 1 đến 5 sao.')
       return
     }
 
@@ -76,7 +77,7 @@ export function MyReviewsPage() {
           }
         : current)
       setEditingReviewId(null)
-      toast.success('Review updated.')
+      toast.success('Đã cập nhật đánh giá.')
     } catch (requestError) {
       toast.error(getErrorMessage(requestError))
     } finally {
@@ -85,13 +86,13 @@ export function MyReviewsPage() {
   }
 
   async function handleDelete(review: ReviewResponse) {
-    if (!window.confirm('Delete this review?')) {
+    if (!window.confirm('Bạn có chắc muốn xóa đánh giá này?')) {
       return
     }
     setBusyReviewId(review.id)
     try {
       await deleteMyReviewApi(review.id)
-      toast.success('Review deleted.')
+      toast.success('Đã xóa đánh giá.')
       if (page?.content.length === 1 && pageNumber > 0) {
         setPageNumber((current) => current - 1)
       } else {
@@ -109,13 +110,13 @@ export function MyReviewsPage() {
     <main className="customer-page">
       <header className="customer-page-header">
         <div>
-          <p className="eyebrow">Customer</p>
-          <h1>My reviews</h1>
+          <p className="eyebrow">Tài khoản</p>
+          <h1>Đánh giá của tôi</h1>
         </div>
-        <Link className="text-link" to="/my-orders">View my orders</Link>
+        <Link className="text-link" to="/my-orders">Xem đơn hàng</Link>
       </header>
 
-      {isLoading && <p className="loading-state" role="status">Loading reviews…</p>}
+      {isLoading && <p className="loading-state" role="status">Đang tải đánh giá...</p>}
       {error && (
         <section className="customer-panel">
           <p className="form-error" role="alert">{error}</p>
@@ -124,15 +125,15 @@ export function MyReviewsPage() {
             onClick={() => setReloadVersion((version) => version + 1)}
             type="button"
           >
-            Retry
+            Thử lại
           </button>
         </section>
       )}
       {!isLoading && !error && page?.content.length === 0 && (
         <section className="customer-panel empty-orders">
-          <h2>No reviews yet</h2>
-          <p className="page-intro">Reviews you submit for delivered orders will appear here.</p>
-          <Link className="button button-primary button-link" to="/my-orders">View my orders</Link>
+          <h2>Bạn chưa có đánh giá</h2>
+          <p className="page-intro">Đánh giá sản phẩm trong đơn hàng đã giao sẽ hiển thị tại đây.</p>
+          <Link className="button button-primary button-link" to="/my-orders">Xem đơn hàng</Link>
         </section>
       )}
       {!isLoading && !error && page && page.content.length > 0 && (
@@ -143,10 +144,10 @@ export function MyReviewsPage() {
                 <div className="customer-review-heading">
                   <div>
                     <Link className="text-link" to={`/products/${review.productId}`}>
-                      View reviewed product
+                      Xem sản phẩm đã đánh giá
                     </Link>
                     <p className="muted-text">
-                      {new Date(review.createdAt).toLocaleString()} · {review.status}
+                      {formatDateTime(review.createdAt)} · {reviewStatusLabel(review.status)}
                     </p>
                   </div>
                   <strong>{review.rating} / 5</strong>
@@ -154,7 +155,7 @@ export function MyReviewsPage() {
                 {editingReviewId === review.id ? (
                   <form className="order-review-form" onSubmit={(event) => void handleUpdate(event, review.id)}>
                     <label>
-                      Rating
+                      Mức đánh giá
                       <select onChange={(event) => setRating(event.target.value)} value={rating}>
                         {[1, 2, 3, 4, 5].map((value) => (
                           <option key={value} value={value}>{value} / 5</option>
@@ -162,7 +163,7 @@ export function MyReviewsPage() {
                       </select>
                     </label>
                     <label>
-                      Comment (optional)
+                      Nhận xét (không bắt buộc)
                       <textarea
                         maxLength={2000}
                         onChange={(event) => setComment(event.target.value)}
@@ -172,23 +173,23 @@ export function MyReviewsPage() {
                     </label>
                     <div className="customer-review-actions">
                       <button className="button button-primary" disabled={busyReviewId === review.id} type="submit">
-                        {busyReviewId === review.id ? 'Saving…' : 'Save changes'}
+                        {busyReviewId === review.id ? 'Đang lưu...' : 'Lưu thay đổi'}
                       </button>
                       <button
                         className="button button-secondary"
                         onClick={() => setEditingReviewId(null)}
                         type="button"
                       >
-                        Cancel
+                        Hủy
                       </button>
                     </div>
                   </form>
                 ) : (
                   <>
-                    <p>{review.comment || 'No comment provided.'}</p>
+                    <p>{review.comment || 'Không có nhận xét.'}</p>
                     <div className="customer-review-actions">
                       <button className="button button-secondary" onClick={() => beginEdit(review)} type="button">
-                        Edit
+                        Chỉnh sửa
                       </button>
                       <button
                         className="button button-danger"
@@ -196,7 +197,7 @@ export function MyReviewsPage() {
                         onClick={() => void handleDelete(review)}
                         type="button"
                       >
-                        {busyReviewId === review.id ? 'Deleting…' : 'Delete'}
+                        {busyReviewId === review.id ? 'Đang xóa...' : 'Xóa'}
                       </button>
                     </div>
                   </>
@@ -204,23 +205,23 @@ export function MyReviewsPage() {
               </article>
             ))}
           </div>
-          <nav aria-label="Review pages" className="pagination">
+          <nav aria-label="Các trang đánh giá" className="pagination">
             <button
               className="button button-secondary"
               disabled={page.first}
               onClick={() => setPageNumber((current) => Math.max(0, current - 1))}
               type="button"
             >
-              Previous
+              Trước
             </button>
-            <span>Page {page.page + 1} of {Math.max(page.totalPages, 1)}</span>
+            <span>Trang {page.page + 1} / {Math.max(page.totalPages, 1)}</span>
             <button
               className="button button-secondary"
               disabled={page.last}
               onClick={() => setPageNumber((current) => current + 1)}
               type="button"
             >
-              Next
+              Sau
             </button>
           </nav>
         </>

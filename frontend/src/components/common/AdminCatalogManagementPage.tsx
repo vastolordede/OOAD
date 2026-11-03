@@ -5,6 +5,7 @@ import { useToast } from '../../hooks/useToast'
 import { Pagination } from './Pagination'
 import { ErrorState, LoadingState } from './FeedbackStates'
 import { getErrorMessage } from '../../utils/getErrorMessage'
+import { catalogStatusLabel } from '../../utils/localization'
 
 export interface CatalogEntry {
   id: number
@@ -61,10 +62,10 @@ export function AdminCatalogManagementPage({ config }: { config: AdminCatalogCon
     try {
       if (editing) {
         await config.update(editing.id, cleanedName)
-        toast.success(`${config.entityName} updated.`)
+        toast.success(`Đã cập nhật ${config.entityName.toLowerCase()}.`)
       } else {
         await config.create(cleanedName)
-        toast.success(`${config.entityName} created.`)
+        toast.success(`Đã tạo ${config.entityName.toLowerCase()}.`)
       }
       setName('')
       setEditing(null)
@@ -82,7 +83,7 @@ export function AdminCatalogManagementPage({ config }: { config: AdminCatalogCon
     setWorkingId(entry.id)
     try {
       await config.setStatus(entry.id, nextStatus)
-      toast.success(`${config.entityName} set to ${nextStatus.toLowerCase()}.`)
+      toast.success(`${config.entityName} đã chuyển sang trạng thái ${catalogStatusLabel(nextStatus).toLowerCase()}.`)
       setReloadVersion((version) => version + 1)
     } catch (error) {
       toast.error(getErrorMessage(error))
@@ -105,13 +106,13 @@ export function AdminCatalogManagementPage({ config }: { config: AdminCatalogCon
     <section className="page-section">
       <header className="section-heading">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1>{config.entityName} management</h1>
+          <p className="eyebrow">Quản trị</p>
+          <h1>Quản lý {config.entityName.toLowerCase()}</h1>
         </div>
       </header>
       <form className="admin-inline-form" onSubmit={handleSubmit}>
         <label>
-          {editing ? `Edit ${config.entityName.toLowerCase()}` : `New ${config.entityName.toLowerCase()}`}
+          {editing ? `Chỉnh sửa ${config.entityName.toLowerCase()}` : `Tên ${config.entityName.toLowerCase()} mới`}
           <input
             maxLength={120}
             onChange={(event) => setName(event.target.value)}
@@ -120,15 +121,15 @@ export function AdminCatalogManagementPage({ config }: { config: AdminCatalogCon
           />
         </label>
         <button className="button button-primary" disabled={saving} type="submit">
-          {saving ? 'Saving…' : editing ? 'Save changes' : `Add ${config.entityName.toLowerCase()}`}
+          {saving ? 'Đang lưu...' : editing ? 'Lưu thay đổi' : `Thêm ${config.entityName.toLowerCase()}`}
         </button>
         {editing && (
           <button className="button button-secondary" onClick={cancelEdit} type="button">
-            Cancel
+            Hủy
           </button>
         )}
       </form>
-      {currentResult === null && <LoadingState message={`Loading ${config.entityName.toLowerCase()}s…`} />}
+      {currentResult === null && <LoadingState message={`Đang tải ${config.entityName.toLowerCase()}...`} />}
       {currentResult?.error && (
         <ErrorState
           message={currentResult.error}
@@ -140,18 +141,18 @@ export function AdminCatalogManagementPage({ config }: { config: AdminCatalogCon
           <div className="table-scroll">
             <table className="data-table">
               <thead>
-                <tr><th>ID</th><th>Name</th><th>Status</th><th>Actions</th></tr>
+                <tr><th>Mã</th><th>Tên</th><th>Trạng thái</th><th>Thao tác</th></tr>
               </thead>
               <tbody>
                 {currentResult.page.content.map((entry) => (
                   <tr key={entry.id}>
                     <td>{entry.id}</td>
                     <td>{entry.name}</td>
-                    <td><span className={`status-badge status-${entry.status.toLowerCase()}`}>{entry.status}</span></td>
+                    <td><span className={`status-badge status-${entry.status.toLowerCase()}`}>{catalogStatusLabel(entry.status)}</span></td>
                     <td>
                       <div className="table-actions">
                         <button className="text-button" onClick={() => beginEdit(entry)} type="button">
-                          Edit
+                          Chỉnh sửa
                         </button>
                         <button
                           className="text-button"
@@ -159,7 +160,7 @@ export function AdminCatalogManagementPage({ config }: { config: AdminCatalogCon
                           onClick={() => void handleStatus(entry)}
                           type="button"
                         >
-                          {workingId === entry.id ? 'Updating…' : entry.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                          {workingId === entry.id ? 'Đang cập nhật...' : entry.status === 'ACTIVE' ? 'Ngừng hoạt động' : 'Kích hoạt'}
                         </button>
                       </div>
                     </td>
@@ -168,7 +169,7 @@ export function AdminCatalogManagementPage({ config }: { config: AdminCatalogCon
               </tbody>
             </table>
           </div>
-          {currentResult.page.content.length === 0 && <p className="empty-state">No {config.entityName.toLowerCase()}s yet.</p>}
+          {currentResult.page.content.length === 0 && <p className="empty-state">Chưa có {config.entityName.toLowerCase()} nào.</p>}
           <Pagination
             onPageChange={setPageNumber}
             page={currentResult.page.page}
