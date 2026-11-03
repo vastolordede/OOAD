@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   addProductImageApi,
   createAdminProductApi,
+  getAdminProductDetailApi,
   createProductVariantApi,
   deleteProductImageApi,
   listAdminProductsApi,
@@ -15,7 +16,6 @@ import {
   uploadProductImageFileApi,
 } from '../api/admin-product.api'
 import { listAdminBrandsApi, listAdminCategoriesApi } from '../api/admin-catalog.api'
-import { getPublicProductDetailApi } from '../api/products.api'
 import { ErrorState, LoadingState } from '../components/common/FeedbackStates'
 import { useToast } from '../hooks/useToast'
 import type { BrandResponse, CategoryResponse, ProductDetailResponse, ProductImageResponse, ProductSummaryResponse, ProductVariantResponse } from '../types/product'
@@ -118,7 +118,7 @@ function toSummary(product: ProductDetailResponse): ProductSummaryResponse {
 
 async function loadAdminProduct(id: number): Promise<LoadedProduct> {
   try {
-    const detail = await getPublicProductDetailApi(id)
+    const detail = await getAdminProductDetailApi(id)
     sessionStorage.setItem(variantCacheKey(id), JSON.stringify(detail))
     return { key: String(id), summary: toSummary(detail), detail }
   } catch (publicError) {

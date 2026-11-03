@@ -199,6 +199,11 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    public ProductDetailResponse adminDetail(Long id) {
+        return toDetail(requireProduct(id), false);
+    }
+
+    @Transactional(readOnly = true)
     public PageResponse<ProductSummaryResponse> adminProducts(
             String q,
             CatalogStatus status,

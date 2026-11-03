@@ -37,6 +37,15 @@ export async function listAdminProductsApi(params: {
   return products
 }
 
+export async function getAdminProductDetailApi(id: number): Promise<ProductDetailResponse> {
+  const response = await api.get<ApiResponse<ProductDetailResponse>>(`/admin/products/${id}`)
+  const product = response.data.data
+  if (!response.data.success || !product) {
+    throw new Error(response.data.message || 'Unable to load admin product detail.')
+  }
+  return product
+}
+
 export async function createAdminProductApi(payload: ProductRequest): Promise<ProductDetailResponse> {
   const response = await api.post<ApiResponse<ProductDetailResponse>>('/admin/products', payload)
   const product = response.data.data

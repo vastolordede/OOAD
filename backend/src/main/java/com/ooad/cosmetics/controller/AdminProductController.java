@@ -57,6 +57,11 @@ public class AdminProductController {
         );
     }
 
+    @GetMapping("/products/{id}")
+    public ApiResponse<ProductDetailResponse> productDetail(@PathVariable Long id) {
+        return ApiResponse.success(productService.adminDetail(id));
+    }
+
     @GetMapping("/products")
     public ApiResponse<PageResponse<ProductSummaryResponse>> products(
             @RequestParam(required = false) String q,
