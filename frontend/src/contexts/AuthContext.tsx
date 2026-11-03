@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { loginApi, registerApi } from '../api/auth.api'
 import { AuthContext } from './auth-context'
 import type {
@@ -78,6 +78,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(null)
     setUser(null)
   }, [])
+
+  useEffect(() => {
+    const handleExpired = () => logout()
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === null || event.key === 'accessToken' || event.key === 'authUser') {
+        setUser(loadStoredUser())
+        setAccessToken(localStorage.getItem('accessToken'))
+      }
+    }
+    window.addEventListener('ooad:auth-expired', handleExpired)
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      window.removeEventListener('ooad:auth-expired', handleExpired)
+      window.removeEventListener('storage', handleStorage)
+    }
+  }, [logout])
 
   const updateUserState = useCallback((updatedUser: UserResponse) => {
     localStorage.setItem('authUser', JSON.stringify(updatedUser))
