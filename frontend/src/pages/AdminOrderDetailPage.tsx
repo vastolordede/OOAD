@@ -5,6 +5,7 @@ import type { AdminOrderResponse } from '../types/commerce'
 import { useToast } from '../hooks/useToast'
 import { formatCurrency } from '../utils/formatCurrency'
 import { getErrorMessage } from '../utils/getErrorMessage'
+import { formatDateTime, orderStatusLabel, paymentMethodLabel, paymentStatusLabel } from '../utils/localization'
 
 interface AdminOrderDetailState {
   key: string
@@ -53,7 +54,7 @@ export function AdminOrderDetailPage() {
   async function updateStatus(nextStatus: AdminOrderResponse['order']['status']) {
     if (!data || !nextStatuses[data.order.status].includes(nextStatus)) return
 
-    if (nextStatus === 'CANCELLED' && !window.confirm('Cancel this order? Stock and voucher usage will be restored.')) {
+    if (nextStatus === 'CANCELLED' && !window.confirm('Bạn có chắc muốn hủy đơn hàng? Tồn kho và lượt sử dụng mã giảm giá sẽ được hoàn lại.')) {
       return
     }
 
@@ -61,7 +62,7 @@ export function AdminOrderDetailPage() {
     try {
       const order = await updateAdminOrderStatusApi(id, nextStatus)
       setResult({ key: requestKey, data: { ...data, order } })
-      toast.success(`Order #${id} updated to ${nextStatus}.`)
+      toast.success(`Đơn hàng #${id} đã chuyển sang trạng thái "${orderStatusLabel(nextStatus)}".`)
     } catch (requestError) {
       toast.error(getErrorMessage(requestError))
     } finally {
@@ -73,14 +74,14 @@ export function AdminOrderDetailPage() {
     <section className="page-section admin-order-detail-page">
       <header className="section-heading">
         <div>
-          <p className="eyebrow">Admin · Order management</p>
+          <p className="eyebrow">Quản trị · Quản lý đơn hàng</p>
           <h1>Order #{isValidId ? id : '—'}</h1>
         </div>
-        <Link className="button button-secondary button-link" to="/admin/orders">Back to orders</Link>
+        <Link className="button button-secondary button-link" to="/admin/orders">Quay lại danh sách đơn</Link>
       </header>
 
-      {!isValidId && <p className="form-error" role="alert">The order ID is invalid.</p>}
-      {isLoading && <p className="loading-state" role="status">Loading order details…</p>}
+      {!isValidId && <p className="form-error" role="alert">Mã đơn hàng không hợp lệ.</p>}
+      {isLoading && <p className="loading-state" role="status">Đang tải chi tiết đơn hàng...</p>}
       {error && (
         <div className="form-error" role="alert">
           {error}
@@ -89,7 +90,7 @@ export function AdminOrderDetailPage() {
             onClick={() => setReloadVersion((version) => version + 1)}
             type="button"
           >
-            Retry
+            Thử lại
           </button>
         </div>
       )}
@@ -99,9 +100,9 @@ export function AdminOrderDetailPage() {
             <div className="section-heading">
               <div>
                 <span className={`status-badge status-${data.order.status.toLowerCase()}`}>
-                  {data.order.status}
+                  {orderStatusLabel(data.order.status)}
                 </span>
-                <p className="muted-text">Placed {new Date(data.order.createdAt).toLocaleString()}</p>
+                <p className="muted-text">Đặt lúc {formatDateTime(data.order.createdAt)}</p>
               </div>
               <div className="admin-order-status-actions">
                 {nextStatuses[data.order.status].map((nextStatus) => (
@@ -112,35 +113,35 @@ export function AdminOrderDetailPage() {
                     onClick={() => void updateStatus(nextStatus)}
                     type="button"
                   >
-                    {isUpdating ? 'Updating…' : `Set ${nextStatus}`}
+                    {isUpdating ? 'Đang cập nhật...' : `Chuyển sang: ${orderStatusLabel(nextStatus)}`}
                   </button>
                 ))}
               </div>
             </div>
             <dl className="payment-details">
-              <div><dt>Customer</dt><dd>{data.customerName}</dd></div>
+              <div><dt>Khách hàng</dt><dd>{data.customerName}</dd></div>
               <div><dt>Email</dt><dd>{data.customerEmail}</dd></div>
-              <div><dt>Customer ID</dt><dd>{data.customerId}</dd></div>
-              <div><dt>Recipient</dt><dd>{data.order.receiverName}</dd></div>
-              <div><dt>Phone</dt><dd>{data.order.receiverPhone}</dd></div>
+              <div><dt>Mã khách hàng</dt><dd>{data.customerId}</dd></div>
+              <div><dt>Người nhận</dt><dd>{data.order.receiverName}</dd></div>
+              <div><dt>Số điện thoại</dt><dd>{data.order.receiverPhone}</dd></div>
               <div>
-                <dt>Shipping address</dt>
+                <dt>Địa chỉ nhận hàng</dt>
                 <dd>
                   {[data.order.shippingAddressLine, data.order.shippingWard, data.order.shippingDistrict, data.order.shippingCity]
                     .filter(Boolean)
                     .join(', ')}
                 </dd>
               </div>
-              <div><dt>Payment</dt><dd>{data.order.payment?.method ?? '—'} · {data.order.payment?.status ?? '—'}</dd></div>
+              <div><dt>Thanh toán</dt><dd>{data.order.payment ? `${paymentMethodLabel(data.order.payment.method)} · ${paymentStatusLabel(data.order.payment.status)}` : '—'}</dd></div>
             </dl>
           </section>
 
           <section className="customer-panel admin-order-items">
-            <h2>Items</h2>
+            <h2>Sản phẩm</h2>
             <div className="table-scroll">
               <table className="data-table">
                 <thead>
-                  <tr><th>Product</th><th>SKU</th><th>Unit price</th><th>Quantity</th><th>Line total</th></tr>
+                  <tr><th>Sản phẩm</th><th>Mã SKU</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr>
                 </thead>
                 <tbody>
                   {data.order.items.map((item) => (
@@ -156,12 +157,12 @@ export function AdminOrderDetailPage() {
               </table>
             </div>
             <dl className="admin-order-totals">
-              <div><dt>Subtotal</dt><dd>{formatCurrency(data.order.subtotal)}</dd></div>
-              <div><dt>Shipping</dt><dd>{formatCurrency(data.order.shippingFee)}</dd></div>
-              <div><dt>Discount{data.order.voucherCode ? ` · ${data.order.voucherCode}` : ''}</dt><dd>−{formatCurrency(data.order.discountAmount)}</dd></div>
-              <div><dt>Total</dt><dd>{formatCurrency(data.order.totalAmount)}</dd></div>
+              <div><dt>Tạm tính</dt><dd>{formatCurrency(data.order.subtotal)}</dd></div>
+              <div><dt>Phí vận chuyển</dt><dd>{formatCurrency(data.order.shippingFee)}</dd></div>
+              <div><dt>Giảm giá{data.order.voucherCode ? ` · ${data.order.voucherCode}` : ''}</dt><dd>−{formatCurrency(data.order.discountAmount)}</dd></div>
+              <div><dt>Tổng thanh toán</dt><dd>{formatCurrency(data.order.totalAmount)}</dd></div>
             </dl>
-            {data.order.note && <p><strong>Customer note:</strong> {data.order.note}</p>}
+            {data.order.note && <p><strong>Ghi chú của khách hàng:</strong> {data.order.note}</p>}
           </section>
         </>
       )}

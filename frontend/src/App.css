@@ -2712,3 +2712,386 @@
     padding: 16px;
   }
 }
+
+body,
+.main-layout {
+  background: #fffafc;
+  color: var(--color-text);
+}
+
+.main-layout {
+  min-height: 100vh;
+}
+
+.main-layout-content {
+  background:
+    radial-gradient(ellipse at 92% 8%, rgb(183 125 135 / 8%), transparent 32rem),
+    #fffafc;
+}
+
+.site-header {
+  background: linear-gradient(105deg, #57262c 0%, #7a3d47 100%);
+  border-bottom: 0;
+  box-shadow: 0 4px 18px rgb(74 32 38 / 12%);
+}
+
+.site-nav {
+  min-height: 76px;
+}
+
+.site-brand,
+.site-user-name {
+  color: #fff;
+}
+
+.site-brand {
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
+.site-nav-link {
+  color: rgb(255 255 255 / 84%);
+  font-size: 14px;
+}
+
+.site-nav-link:hover,
+.site-nav-link.is-active {
+  color: #fff;
+}
+
+.site-nav-links .button-secondary {
+  background: rgb(255 255 255 / 10%);
+  border-color: rgb(255 255 255 / 36%);
+  color: #fff;
+}
+
+.site-nav-links .button-secondary:hover {
+  background: rgb(255 255 255 / 18%);
+}
+
+.site-nav-links .button-primary {
+  background: #fff8f8;
+  color: #602a31;
+}
+
+.site-nav-links .button-primary:hover:not(:disabled) {
+  background: #f1e7ed;
+}
+
+.site-footer {
+  background: #f7edf0;
+  border-top: 1px solid #ead9de;
+  color: #806b70;
+}
+
+.site-footer span:first-child {
+  color: #602a31;
+}
+
+.button-primary {
+  background: var(--color-brand);
+  color: #fff;
+}
+
+.button-primary:hover:not(:disabled) {
+  background: var(--color-brand-dark);
+}
+
+.button-secondary {
+  border-color: #d7c3c8;
+  color: var(--color-brand);
+}
+
+.button-secondary:hover:not(:disabled) {
+  background: #fbf2f4;
+  border-color: #b77d87;
+}
+
+.button:focus-visible,
+.auth-form input:focus-visible,
+.text-link:focus-visible,
+.site-nav-link:focus-visible,
+.site-brand:focus-visible {
+  outline: 3px solid rgb(142 68 79 / 28%);
+  outline-offset: 2px;
+}
+
+.text-link {
+  color: #71323b;
+}
+
+.text-link:hover {
+  color: #4a2026;
+}
+
+.auth-page {
+  background:
+    radial-gradient(ellipse at 10% 12%, rgb(183 125 135 / 20%), transparent 32rem),
+    linear-gradient(145deg, #fffafc, #f8eef1);
+}
+
+.auth-card {
+  border-color: #ead9de;
+  box-shadow: 0 18px 44px rgb(74 32 38 / 10%);
+}
+
+.auth-card h1,
+.page-section h1,
+.customer-page h1,
+.customer-panel h1,
+.customer-panel h2,
+.checkout-header h1,
+.checkout-panel h2 {
+  color: #603037;
+}
+
+.auth-back-link {
+  color: #71323b;
+}
+
+.eyebrow {
+  color: #986a73;
+}
+
+.page-intro {
+  color: #806b70;
+}
+
+.auth-form input,
+.admin-inline-form input,
+.admin-filter-form input,
+.admin-form-grid input,
+.admin-form-grid select,
+.admin-form-grid textarea,
+.voucher-filters input,
+.voucher-filters select,
+.filter-control select,
+.address-form-grid input,
+.address-form-wrap input,
+.catalog-filters input,
+.catalog-filters select,
+.voucher-form input,
+.voucher-form select,
+.voucher-form textarea,
+.review-filters input,
+.review-filters select {
+  border-color: #dbcbd0;
+  color: #492b30;
+}
+
+.auth-form input:focus,
+.catalog-filters input:focus,
+.catalog-filters select:focus,
+.address-form-grid input:focus {
+  border-color: #a45b67;
+  outline-color: rgb(142 68 79 / 24%);
+}
+
+.form-error {
+  background: #fff0ef;
+  color: #9c302a;
+}
+
+.customer-page {
+  max-width: 1240px;
+}
+
+.customer-panel,
+.checkout-panel,
+.page-section,
+.auth-card,
+.dashboard-widget {
+  border-color: #eadde0;
+  box-shadow: 0 8px 26px rgb(74 32 38 / 4%);
+}
+
+.customer-panel h1,
+.customer-panel h2,
+.checkout-panel h2,
+.checkout-panel h3 {
+  color: #603037;
+}
+
+.customer-panel p,
+.muted-text {
+  color: #806b70;
+}
+
+.address-option {
+  border-color: #e6d9dc;
+}
+
+.address-option:has(input:checked) {
+  background: #fbf2f4;
+  border-color: #a45b67;
+}
+
+.home-page {
+  padding-top: 34px;
+}
+
+.home-hero {
+  background:
+    radial-gradient(ellipse at 90% 15%, rgb(255 255 255 / 14%), transparent 24rem),
+    linear-gradient(115deg, #57262c 0%, #81444f 62%, #b77d87 100%);
+  border: 0;
+  border-radius: 14px;
+  box-shadow: 0 18px 42px rgb(74 32 38 / 17%);
+  color: #fff;
+  padding: clamp(30px, 5vw, 58px);
+}
+
+.home-hero .eyebrow,
+.home-hero h1,
+.home-hero .page-intro {
+  color: #fff;
+}
+
+.home-hero .eyebrow {
+  opacity: 0.78;
+}
+
+.home-hero .page-intro {
+  opacity: 0.88;
+}
+
+.home-hero .button-secondary {
+  background: rgb(255 255 255 / 12%);
+  border-color: rgb(255 255 255 / 38%);
+  color: #fff;
+}
+
+.home-hero .button-secondary:hover:not(:disabled) {
+  background: rgb(255 255 255 / 22%);
+}
+
+.featured-section {
+  padding: 4px 0 20px;
+}
+
+.featured-header h2 {
+  color: #603037;
+}
+
+.product-card {
+  border-color: #eadde0;
+  box-shadow: 0 8px 24px rgb(74 32 38 / 5%);
+}
+
+.product-card:hover {
+  border-color: #d5b9c0;
+  box-shadow: 0 14px 32px rgb(74 32 38 / 11%);
+}
+
+.product-card h2,
+.product-card-price {
+  color: #603037;
+}
+
+.status-confirmed,
+.status-shipping {
+  background: #f1e7ed;
+  color: #71323b;
+}
+
+.status-pending {
+  background: #fff4dc;
+  color: #805b08;
+}
+
+.status-delivered,
+.status-active,
+.status-visible {
+  background: #eaf4ea;
+  color: #27643a;
+}
+
+.status-cancelled,
+.status-failed,
+.status-hidden,
+.status-inactive,
+.status-disabled {
+  background: #fff0ef;
+  color: #9c302a;
+}
+
+.admin-shell {
+  background: #fffafc;
+  color: #492b30;
+}
+
+.admin-sidebar {
+  background: linear-gradient(180deg, #57262c 0%, #b77d87 100%);
+}
+
+.admin-nav-link:hover,
+.admin-nav-link.is-active {
+  background: rgb(255 255 255 / 34%);
+}
+
+.admin-topbar {
+  border-color: #ead9de;
+  color: #603037;
+}
+
+.admin-role {
+  background: #f1e7ed;
+  color: #71323b;
+}
+
+.admin-content {
+  max-width: 1440px;
+}
+
+.data-table th {
+  background: #f4eaf0;
+  color: #603037;
+}
+
+.data-table td {
+  color: #492b30;
+}
+
+.data-table th,
+.data-table td {
+  border-color: #eee3e6;
+}
+
+.text-button {
+  color: #71323b;
+}
+
+.status-badge {
+  font-size: 12px;
+}
+
+.toast-success {
+  background: #edf6ee;
+  border-color: #bedac2;
+  color: #27643a;
+}
+
+.toast-info {
+  background: #f4eaf0;
+  border-color: #dfc5cc;
+  color: #603037;
+}
+
+@media (max-width: 760px) {
+  .site-nav {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 18px;
+  }
+
+  .site-nav-links {
+    justify-content: flex-start;
+  }
+
+  .site-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 18px;
+  }
+}

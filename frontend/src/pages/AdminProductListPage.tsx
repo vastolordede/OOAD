@@ -9,6 +9,7 @@ import type { ProductSummaryResponse } from '../types/product'
 import type { CatalogStatus } from '../types/voucher'
 import { formatCurrency } from '../utils/formatCurrency'
 import { getErrorMessage } from '../utils/getErrorMessage'
+import { catalogStatusLabel } from '../utils/localization'
 
 interface ProductListState {
   key: string
@@ -64,7 +65,7 @@ export function AdminProductListPage() {
     setWorkingId(product.id)
     try {
       await updateAdminProductStatusApi(product.id, nextStatus)
-      toast.success(`${product.name} set to ${nextStatus.toLowerCase()}.`)
+      toast.success(`Sản phẩm "${product.name}" đã chuyển sang trạng thái ${catalogStatusLabel(nextStatus).toLowerCase()}.`)
       setReloadVersion((version) => version + 1)
     } catch (error) {
       toast.error(getErrorMessage(error))
@@ -77,27 +78,27 @@ export function AdminProductListPage() {
     <section className="page-section">
       <header className="section-heading">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1>Product management</h1>
+          <p className="eyebrow">Quản trị</p>
+          <h1>Quản lý sản phẩm</h1>
         </div>
-        <Link className="button button-primary" to="/admin/products/new">Create product</Link>
+        <Link className="button button-primary" to="/admin/products/new">Thêm sản phẩm</Link>
       </header>
       <form className="admin-filter-form" onSubmit={handleSearch}>
         <label>
-          Search products
+          Tìm kiếm sản phẩm
           <input onChange={(event) => setQueryDraft(event.target.value)} value={queryDraft} />
         </label>
         <label>
-          Status
+          Trạng thái
           <select onChange={(event) => handleStatusFilter(event.target.value)} value={status}>
-            <option value="">All statuses</option>
-            <option value="ACTIVE">Active</option>
-            <option value="INACTIVE">Inactive</option>
+            <option value="">Tất cả trạng thái</option>
+            <option value="ACTIVE">Đang hoạt động</option>
+            <option value="INACTIVE">Ngừng hoạt động</option>
           </select>
         </label>
-        <button className="button button-secondary" type="submit">Search</button>
+        <button className="button button-secondary" type="submit">Tìm kiếm</button>
       </form>
-      {currentResult === null && <LoadingState message="Loading products…" />}
+      {currentResult === null && <LoadingState message="Đang tải sản phẩm..." />}
       {currentResult?.error && (
         <ErrorState
           message={currentResult.error}
@@ -109,7 +110,7 @@ export function AdminProductListPage() {
           <div className="table-scroll">
             <table className="data-table">
               <thead>
-                <tr><th>Product</th><th>Category</th><th>Brand</th><th>Price</th><th>Status</th><th>Actions</th></tr>
+                <tr><th>Sản phẩm</th><th>Danh mục</th><th>Thương hiệu</th><th>Giá</th><th>Trạng thái</th><th>Thao tác</th></tr>
               </thead>
               <tbody>
                 {currentResult.page.content.map((product) => (
@@ -124,18 +125,18 @@ export function AdminProductListPage() {
                     </td>
                     <td>{product.categoryName}</td>
                     <td>{product.brandName}</td>
-                    <td>{product.minPrice === null ? 'Contact for price' : formatCurrency(product.minPrice)}</td>
-                    <td><span className={`status-badge status-${product.status.toLowerCase()}`}>{product.status}</span></td>
+                    <td>{product.minPrice === null ? 'Liên hệ để biết giá' : formatCurrency(product.minPrice)}</td>
+                    <td><span className={`status-badge status-${product.status.toLowerCase()}`}>{catalogStatusLabel(product.status)}</span></td>
                     <td>
                       <div className="table-actions">
-                        <Link className="text-link" to={`/admin/products/${product.id}/edit`}>Edit / Manage</Link>
+                        <Link className="text-link" to={`/admin/products/${product.id}/edit`}>Chỉnh sửa / Quản lý</Link>
                         <button
                           className="text-button"
                           disabled={workingId === product.id}
                           onClick={() => void handleToggleStatus(product)}
                           type="button"
                         >
-                          {workingId === product.id ? 'Updating…' : product.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                          {workingId === product.id ? 'Đang cập nhật...' : product.status === 'ACTIVE' ? 'Ngừng hoạt động' : 'Kích hoạt'}
                         </button>
                       </div>
                     </td>
@@ -144,7 +145,7 @@ export function AdminProductListPage() {
               </tbody>
             </table>
           </div>
-          {currentResult.page.content.length === 0 && <p className="empty-state">No products match these filters.</p>}
+          {currentResult.page.content.length === 0 && <p className="empty-state">Không có sản phẩm phù hợp với bộ lọc.</p>}
           <Pagination
             onPageChange={setPageNumber}
             page={currentResult.page.page}

@@ -15,6 +15,7 @@ import type { PaymentMethod } from '../types/order'
 import { useToast } from '../hooks/useToast'
 import { getErrorMessage } from '../utils/getErrorMessage'
 import { formatCurrency } from '../utils/formatCurrency'
+import { orderStatusLabel } from '../utils/localization'
 
 const emptyAddress: AddressRequest = {
   receiverName: '',
@@ -160,7 +161,7 @@ export function CheckoutPage() {
       setSelectedAddressId(address.id)
       setAddressForm(emptyAddress)
       setShowAddressForm(false)
-      toast.success('Shipping address saved.')
+      toast.success('Đã lưu địa chỉ nhận hàng.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     } finally {
@@ -172,7 +173,7 @@ export function CheckoutPage() {
     const normalizedCode = voucherDraft.trim()
 
     if (!normalizedCode) {
-      toast.error('Enter a voucher code first.')
+      toast.error('Vui lòng nhập mã giảm giá.')
       return
     }
 
@@ -189,11 +190,11 @@ export function CheckoutPage() {
       return
     }
     if (!selectedAddressId || !preview || !cart || cart.items.length === 0) {
-      toast.error('Select a shipping address and wait for the checkout preview.')
+      toast.error('Vui lòng chọn địa chỉ nhận hàng và chờ hệ thống tính đơn hàng.')
       return
     }
     if (cart.hasUnavailableItems) {
-      toast.error('Remove unavailable items from the cart before ordering.')
+      toast.error('Vui lòng xóa sản phẩm không khả dụng khỏi giỏ hàng trước khi đặt.')
       return
     }
 
@@ -212,7 +213,7 @@ export function CheckoutPage() {
         return
       }
       setCreatedOrder(order)
-      toast.success(`Order #${order.id} created successfully.`)
+      toast.success(`Đặt hàng thành công. Mã đơn hàng: #${order.id}.`)
     } catch (error) {
       toast.error(getErrorMessage(error))
     } finally {
@@ -222,14 +223,14 @@ export function CheckoutPage() {
   }
 
   if (isLoading) {
-    return <main className="checkout-page"><p role="status">Loading checkout…</p></main>
+    return <main className="checkout-page"><p role="status">Đang tải thông tin thanh toán...</p></main>
   }
 
   if (loadError) {
     return (
       <main className="checkout-page">
         <section className="checkout-panel">
-          <h1>Checkout</h1>
+          <h1>Thanh toán</h1>
           <p className="form-error" role="alert">{loadError}</p>
         </section>
       </main>
@@ -240,14 +241,14 @@ export function CheckoutPage() {
     return (
       <main className="checkout-page">
         <section className="checkout-panel order-success">
-          <p className="eyebrow">Order confirmed</p>
-          <h1>Thank you for your order</h1>
+          <p className="eyebrow">Đặt hàng thành công</p>
+          <h1>Cảm ơn bạn đã đặt hàng</h1>
           <p>
-            Order <strong>#{createdOrder.id}</strong> is now {createdOrder.status.toLowerCase()}.
+            Đơn hàng <strong>#{createdOrder.id}</strong> hiện đang ở trạng thái {orderStatusLabel(createdOrder.status).toLowerCase()}.
           </p>
-          <p>Total: <strong>{formatCurrency(createdOrder.totalAmount)}</strong></p>
+          <p>Tổng thanh toán: <strong>{formatCurrency(createdOrder.totalAmount)}</strong></p>
           <Link className="button button-primary button-link" to={`/my-orders/${createdOrder.id}`}>
-            View order details
+            Xem chi tiết đơn hàng
           </Link>
         </section>
       </main>
@@ -258,10 +259,10 @@ export function CheckoutPage() {
     return (
       <main className="checkout-page">
         <section className="checkout-panel">
-          <h1>Checkout</h1>
-          <p>Your cart is empty.</p>
+          <h1>Thanh toán</h1>
+          <p>Giỏ hàng của bạn đang trống.</p>
           <Link className="button button-primary button-link" to="/">
-            Continue shopping
+            Tiếp tục mua sắm
           </Link>
         </section>
       </main>
@@ -272,15 +273,15 @@ export function CheckoutPage() {
     <main className="checkout-page">
       <header className="checkout-header">
         <div>
-          <p className="eyebrow">Customer</p>
-          <h1>Checkout</h1>
+          <p className="eyebrow">Mua sắm</p>
+          <h1>Thanh toán</h1>
         </div>
-        <Link className="text-link" to="/">Continue shopping</Link>
+        <Link className="text-link" to="/">Tiếp tục mua sắm</Link>
       </header>
 
       {cart.hasUnavailableItems && (
         <p className="form-error" role="alert">
-          One or more cart items are unavailable or have insufficient stock. Update the cart before checkout.
+          Một hoặc nhiều sản phẩm trong giỏ hàng không khả dụng hoặc không đủ tồn kho. Vui lòng cập nhật giỏ hàng trước khi thanh toán.
         </p>
       )}
 
@@ -289,20 +290,20 @@ export function CheckoutPage() {
           <section className="checkout-panel">
             <div className="section-heading">
               <div>
-                <p className="eyebrow">Step 1</p>
-                <h2>Shipping address</h2>
+                <p className="eyebrow">Bước 1</p>
+                <h2>Địa chỉ nhận hàng</h2>
               </div>
               <button
                 className="button button-secondary"
                 onClick={() => setShowAddressForm((visible) => !visible)}
                 type="button"
               >
-                {showAddressForm ? 'Close form' : 'Add address'}
+                {showAddressForm ? 'Đóng biểu mẫu' : 'Thêm địa chỉ'}
               </button>
             </div>
 
             {addresses.length === 0 && !showAddressForm ? (
-              <p className="empty-state">Add a shipping address to continue.</p>
+              <p className="empty-state">Thêm địa chỉ nhận hàng để tiếp tục.</p>
             ) : (
               <div className="address-list">
                 {addresses.map((address) => (
@@ -315,7 +316,7 @@ export function CheckoutPage() {
                     />
                     <span>
                       <strong>{address.receiverName}</strong>
-                      {address.defaultAddress && <span className="default-tag">Default</span>}
+                      {address.defaultAddress && <span className="default-tag">Mặc định</span>}
                       <span>{address.phone}</span>
                       <span>{addressLabel(address)}</span>
                     </span>
@@ -326,10 +327,10 @@ export function CheckoutPage() {
 
             {showAddressForm && (
               <form className="address-form-wrap" onSubmit={handleCreateAddress}>
-                <h3>New shipping address</h3>
+                <h3>Địa chỉ nhận hàng mới</h3>
                 <div className="address-form-grid">
                   <label>
-                    Recipient name
+                    Tên người nhận
                     <input
                       maxLength={150}
                       onChange={(event) => setAddressForm({ ...addressForm, receiverName: event.target.value })}
@@ -338,7 +339,7 @@ export function CheckoutPage() {
                     />
                   </label>
                   <label>
-                    Phone
+                    Số điện thoại
                     <input
                       maxLength={30}
                       onChange={(event) => setAddressForm({ ...addressForm, phone: event.target.value })}
@@ -347,7 +348,7 @@ export function CheckoutPage() {
                     />
                   </label>
                   <label className="address-form-wide">
-                    Address
+                    Địa chỉ
                     <input
                       maxLength={255}
                       onChange={(event) => setAddressForm({ ...addressForm, addressLine: event.target.value })}
@@ -356,7 +357,7 @@ export function CheckoutPage() {
                     />
                   </label>
                   <label>
-                    Ward
+                    Phường / xã
                     <input
                       maxLength={120}
                       onChange={(event) => setAddressForm({ ...addressForm, ward: event.target.value })}
@@ -364,7 +365,7 @@ export function CheckoutPage() {
                     />
                   </label>
                   <label>
-                    District
+                    Quận / huyện
                     <input
                       maxLength={120}
                       onChange={(event) => setAddressForm({ ...addressForm, district: event.target.value })}
@@ -372,7 +373,7 @@ export function CheckoutPage() {
                     />
                   </label>
                   <label>
-                    City
+                    Tỉnh / thành phố
                     <input
                       maxLength={120}
                       onChange={(event) => setAddressForm({ ...addressForm, city: event.target.value })}
@@ -386,11 +387,11 @@ export function CheckoutPage() {
                       onChange={(event) => setAddressForm({ ...addressForm, defaultAddress: event.target.checked })}
                       type="checkbox"
                     />
-                    Set as default address
+                    Đặt làm địa chỉ mặc định
                   </label>
                 </div>
                 <button className="button button-primary" disabled={isCreatingAddress} type="submit">
-                  {isCreatingAddress ? 'Saving…' : 'Save address'}
+                  {isCreatingAddress ? 'Đang lưu...' : 'Lưu địa chỉ'}
                 </button>
               </form>
             )}
@@ -399,21 +400,21 @@ export function CheckoutPage() {
           <section className="checkout-panel">
             <div className="section-heading">
               <div>
-                <p className="eyebrow">Step 2</p>
-                <h2>Items</h2>
+                <p className="eyebrow">Bước 2</p>
+                <h2>Sản phẩm</h2>
               </div>
-              <span className="muted-text">{cart.totalQuantity} items</span>
+              <span className="muted-text">{cart.totalQuantity} sản phẩm</span>
             </div>
             <ul className="checkout-items">
               {cart.items.map((item) => (
                 <li className="checkout-item" key={item.id}>
                   <div className="item-image">
-                    {item.imageUrl ? <img alt="" src={item.imageUrl} /> : <span>No image</span>}
+                    {item.imageUrl ? <img alt="" src={item.imageUrl} /> : <span>Chưa có hình ảnh</span>}
                   </div>
                   <div className="item-description">
                     <strong>{item.productName}</strong>
-                    <span>SKU: {item.sku}</span>
-                    <span>Quantity: {item.quantity}</span>
+                    <span>Mã SKU: {item.sku}</span>
+                    <span>Số lượng: {item.quantity}</span>
                   </div>
                   <strong>{formatCurrency(item.lineTotal)}</strong>
                 </li>
@@ -422,7 +423,7 @@ export function CheckoutPage() {
           </section>
 
           <section className="checkout-panel">
-            <label className="note-field" htmlFor="order-note">Order note (optional)</label>
+            <label className="note-field" htmlFor="order-note">Ghi chú đơn hàng (không bắt buộc)</label>
             <textarea
               id="order-note"
               maxLength={500}
@@ -434,10 +435,10 @@ export function CheckoutPage() {
         </div>
 
         <aside className="checkout-panel checkout-summary">
-          <p className="eyebrow">Step 3</p>
-          <h2>Order summary</h2>
+          <p className="eyebrow">Bước 3</p>
+          <h2>Tóm tắt đơn hàng</h2>
           <div className="voucher-entry">
-            <label htmlFor="voucher-code">Voucher code</label>
+            <label htmlFor="voucher-code">Mã giảm giá</label>
             <div className="voucher-controls">
               <input
                 disabled={Boolean(voucherCode)}
@@ -448,33 +449,33 @@ export function CheckoutPage() {
               />
               {voucherCode ? (
                 <button className="button button-secondary" onClick={removeVoucher} type="button">
-                  Remove
+                  Xóa mã
                 </button>
               ) : (
                 <button className="button button-secondary" onClick={applyVoucher} type="button">
-                  Apply
+                  Áp dụng
                 </button>
               )}
             </div>
             {preview?.voucherCode && (
-              <p className="voucher-applied">Applied: {preview.voucherCode}</p>
+              <p className="voucher-applied">Đã áp dụng: {preview.voucherCode}</p>
             )}
           </div>
 
           <div aria-live="polite" className="summary-lines">
-            <div><span>Subtotal</span><span>{preview ? formatCurrency(preview.subtotal) : '—'}</span></div>
-            <div><span>Discount</span><span>{preview ? `− ${formatCurrency(preview.discountAmount)}` : '—'}</span></div>
-            <div><span>Shipping</span><span>{preview ? formatCurrency(preview.shippingFee) : '—'}</span></div>
-            <div className="summary-total"><strong>Total</strong><strong>{preview ? formatCurrency(preview.totalAmount) : '—'}</strong></div>
+            <div><span>Tạm tính</span><span>{preview ? formatCurrency(preview.subtotal) : '—'}</span></div>
+            <div><span>Giảm giá</span><span>{preview ? `− ${formatCurrency(preview.discountAmount)}` : '—'}</span></div>
+            <div><span>Phí vận chuyển</span><span>{preview ? formatCurrency(preview.shippingFee) : '—'}</span></div>
+            <div className="summary-total"><strong>Tổng thanh toán</strong><strong>{preview ? formatCurrency(preview.totalAmount) : '—'}</strong></div>
           </div>
 
-          {isPreviewLoading && <p className="muted-text" role="status">Updating totals…</p>}
+          {isPreviewLoading && <p className="muted-text" role="status">Đang cập nhật tổng tiền...</p>}
           {!isPreviewLoading && !preview && selectedAddressId && (
-            <p className="form-error" role="alert">Checkout preview is not available. Review the selected address or voucher.</p>
+            <p className="form-error" role="alert">Chưa thể tính đơn hàng. Vui lòng kiểm tra địa chỉ nhận hàng hoặc mã giảm giá.</p>
           )}
 
           <fieldset className="payment-method-options">
-            <legend>Payment method</legend>
+            <legend>Phương thức thanh toán</legend>
             <label className="address-option">
               <input
                 checked={paymentMethod === 'COD'}
@@ -483,8 +484,8 @@ export function CheckoutPage() {
                 type="radio"
               />
               <span>
-                <strong>Cash on delivery</strong>
-                <span>Pay when your order arrives.</span>
+                <strong>Thanh toán khi nhận hàng</strong>
+                <span>Thanh toán khi đơn hàng được giao đến.</span>
               </span>
             </label>
             <label className="address-option">
@@ -495,8 +496,8 @@ export function CheckoutPage() {
                 type="radio"
               />
               <span>
-                <strong>Online payment (simulation)</strong>
-                <span>No real payment provider or charge is used.</span>
+                <strong>Thanh toán trực tuyến (mô phỏng)</strong>
+                <span>Không kết nối cổng thanh toán và không phát sinh giao dịch thật.</span>
               </span>
             </label>
           </fieldset>
@@ -506,7 +507,7 @@ export function CheckoutPage() {
             onClick={() => void handleCreateOrder()}
             type="button"
           >
-            {isSubmittingOrder ? 'Creating order…' : 'Confirm order'}
+            {isSubmittingOrder ? 'Đang tạo đơn hàng...' : 'Xác nhận đặt hàng'}
           </button>
         </aside>
       </div>

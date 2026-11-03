@@ -20,7 +20,7 @@ export function OrderReviewForm({
     event.preventDefault()
     const numericRating = Number(rating)
     if (!Number.isInteger(numericRating) || numericRating < 1 || numericRating > 5) {
-      toast.error('Choose a rating from 1 to 5.')
+      toast.error('Vui lòng chọn mức đánh giá từ 1 đến 5 sao.')
       return
     }
 
@@ -32,7 +32,7 @@ export function OrderReviewForm({
         comment: comment.trim() || null,
       })
       onSubmitted(review)
-      toast.success('Review submitted.')
+      toast.success('Gửi đánh giá thành công.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     } finally {
@@ -43,16 +43,16 @@ export function OrderReviewForm({
   return (
     <form className="order-review-form" onSubmit={handleSubmit}>
       <label>
-        Rating
+        Mức đánh giá
         <select onChange={(event) => setRating(event.target.value)} required value={rating}>
-          <option value="">Choose a rating</option>
+          <option value="">Chọn số sao</option>
           {[1, 2, 3, 4, 5].map((value) => (
             <option key={value} value={value}>{value} / 5</option>
           ))}
         </select>
       </label>
       <label>
-        Comment (optional)
+        Nhận xét (không bắt buộc)
         <textarea
           maxLength={2000}
           onChange={(event) => setComment(event.target.value)}
@@ -61,7 +61,7 @@ export function OrderReviewForm({
         />
       </label>
       <button className="button button-secondary" disabled={isSubmitting} type="submit">
-        {isSubmitting ? 'Submitting…' : 'Submit review'}
+        {isSubmitting ? 'Đang gửi...' : 'Gửi đánh giá'}
       </button>
     </form>
   )

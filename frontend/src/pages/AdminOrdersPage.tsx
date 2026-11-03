@@ -5,6 +5,7 @@ import type { PageResponse } from '../types/api'
 import type { OrderStatus, OrderSummaryResponse } from '../types/commerce'
 import { formatCurrency } from '../utils/formatCurrency'
 import { getErrorMessage } from '../utils/getErrorMessage'
+import { formatDateTime, orderStatusLabel, paymentMethodLabel, paymentStatusLabel } from '../utils/localization'
 
 const orderStatuses: OrderStatus[] = [
   'PENDING',
@@ -76,7 +77,7 @@ export function AdminOrdersPage() {
   function applyFilters(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (fromDateDraft && toDateDraft && fromDateDraft > toDateDraft) {
-      setFilterError('The start date must be on or before the end date.')
+      setFilterError('Ngày bắt đầu phải bằng hoặc trước ngày kết thúc.')
       return
     }
 
@@ -96,29 +97,29 @@ export function AdminOrdersPage() {
     <section className="page-section admin-orders-page">
       <header className="section-heading">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1>Order management</h1>
+          <p className="eyebrow">Quản trị</p>
+          <h1>Quản lý đơn hàng</h1>
         </div>
       </header>
 
       <form className="admin-order-filters" onSubmit={applyFilters}>
         <label>
-          Search
+          Tìm kiếm
           <input
             onChange={(event) => setKeywordDraft(event.target.value)}
-            placeholder="Order ID, email, recipient or phone"
+            placeholder="Mã đơn, email, người nhận hoặc số điện thoại"
             value={keywordDraft}
           />
         </label>
         <label>
-          Status
+          Trạng thái
           <select onChange={(event) => updateStatusFilter(event.target.value)} value={status}>
-            <option value="">All statuses</option>
-            {orderStatuses.map((value) => <option key={value} value={value}>{value}</option>)}
+            <option value="">Tất cả trạng thái</option>
+            {orderStatuses.map((value) => <option key={value} value={value}>{orderStatusLabel(value)}</option>)}
           </select>
         </label>
         <label>
-          From
+          Từ ngày
           <input
             onChange={(event) => setFromDateDraft(event.target.value)}
             type="date"
@@ -126,7 +127,7 @@ export function AdminOrdersPage() {
           />
         </label>
         <label>
-          To
+          Đến ngày
           <input
             onChange={(event) => setToDateDraft(event.target.value)}
             type="date"
@@ -134,33 +135,33 @@ export function AdminOrdersPage() {
           />
         </label>
         <label>
-          Sort by
+          Sắp xếp theo
           <select
             onChange={(event) =>
               setSortBy(event.target.value as 'createdAt' | 'totalAmount' | 'status' | 'id')}
             value={sortBy}
           >
-            <option value="createdAt">Created date</option>
-            <option value="totalAmount">Total amount</option>
-            <option value="status">Status</option>
-            <option value="id">Order ID</option>
+            <option value="createdAt">Ngày tạo</option>
+            <option value="totalAmount">Tổng tiền</option>
+            <option value="status">Trạng thái</option>
+            <option value="id">Mã đơn hàng</option>
           </select>
         </label>
         <label>
-          Direction
+          Thứ tự
           <select
             onChange={(event) => setDirection(event.target.value === 'asc' ? 'asc' : 'desc')}
             value={direction}
           >
-            <option value="desc">Descending</option>
-            <option value="asc">Ascending</option>
+            <option value="desc">Giảm dần</option>
+            <option value="asc">Tăng dần</option>
           </select>
         </label>
-        <button className="button button-secondary" type="submit">Apply filters</button>
+        <button className="button button-secondary" type="submit">Áp dụng bộ lọc</button>
       </form>
 
       {filterError && <p className="form-error" role="alert">{filterError}</p>}
-      {isLoading && <p className="loading-state" role="status">Loading orders…</p>}
+      {isLoading && <p className="loading-state" role="status">Đang tải đơn hàng...</p>}
       {pageError && (
         <div className="form-error" role="alert">
           {pageError}
@@ -169,12 +170,12 @@ export function AdminOrdersPage() {
             onClick={() => setReloadVersion((version) => version + 1)}
             type="button"
           >
-            Retry
+            Thử lại
           </button>
         </div>
       )}
       {!isLoading && !pageError && pageData?.content.length === 0 && (
-        <p className="empty-state">No orders match these filters.</p>
+        <p className="empty-state">Không có đơn hàng phù hợp với bộ lọc.</p>
       )}
 
       {!isLoading && !pageError && pageData && pageData.content.length > 0 && (
@@ -183,14 +184,14 @@ export function AdminOrdersPage() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Order</th>
-                  <th>Customer / recipient</th>
-                  <th>Items</th>
-                  <th>Total</th>
-                  <th>Payment</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                  <th>Details</th>
+                  <th>Đơn hàng</th>
+                  <th>Khách hàng / người nhận</th>
+                  <th>Sản phẩm</th>
+                  <th>Tổng tiền</th>
+                  <th>Thanh toán</th>
+                  <th>Trạng thái</th>
+                  <th>Ngày tạo</th>
+                  <th>Chi tiết</th>
                 </tr>
               </thead>
               <tbody>
@@ -206,36 +207,36 @@ export function AdminOrdersPage() {
                       {order.firstItemName && <span className="table-subtext">{order.firstItemName}</span>}
                     </td>
                     <td>{formatCurrency(order.totalAmount)}</td>
-                    <td>{order.paymentMethod} · {order.paymentStatus}</td>
+                    <td>{paymentMethodLabel(order.paymentMethod)} · {paymentStatusLabel(order.paymentStatus)}</td>
                     <td>
                       <span className={`status-badge status-${order.status.toLowerCase()}`}>
-                        {order.status}
+                        {orderStatusLabel(order.status)}
                       </span>
                     </td>
-                    <td>{new Date(order.createdAt).toLocaleString()}</td>
-                    <td><Link className="text-link" to={`/admin/orders/${order.id}`}>Open</Link></td>
+                    <td>{formatDateTime(order.createdAt)}</td>
+                    <td><Link className="text-link" to={`/admin/orders/${order.id}`}>Mở</Link></td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <nav aria-label="Order pages" className="pagination">
+          <nav aria-label="Các trang đơn hàng" className="pagination">
             <button
               className="button button-secondary"
               disabled={pageData.first}
               onClick={() => setPageNumber((current) => Math.max(0, current - 1))}
               type="button"
             >
-              Previous
+              Trước
             </button>
-            <span>Page {pageData.page + 1} of {Math.max(pageData.totalPages, 1)}</span>
+            <span>Trang {pageData.page + 1} / {Math.max(pageData.totalPages, 1)}</span>
             <button
               className="button button-secondary"
               disabled={pageData.last}
               onClick={() => setPageNumber((current) => current + 1)}
               type="button"
             >
-              Next
+              Sau
             </button>
           </nav>
         </>

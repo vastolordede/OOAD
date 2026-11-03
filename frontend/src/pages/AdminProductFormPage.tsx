@@ -22,6 +22,7 @@ import type { BrandResponse, CategoryResponse, ProductDetailResponse, ProductIma
 import type { CatalogStatus } from '../types/voucher'
 import { formatCurrency } from '../utils/formatCurrency'
 import { getErrorMessage } from '../utils/getErrorMessage'
+import { catalogStatusLabel } from '../utils/localization'
 
 const emptyProduct = {
   name: '',
@@ -169,7 +170,7 @@ function ProductLoadResult({
   error: string | undefined
   onRetry: () => void
 }) {
-  if (isLoading) return <LoadingState message="Loading product…" />
+  if (isLoading) return <LoadingState message="Đang tải sản phẩm..." />
   if (error) return <ErrorState message={error} onRetry={onRetry} />
   return null
 }
@@ -265,7 +266,7 @@ export function AdminProductFormPage() {
     const category = Number(form.categoryId)
     const brand = Number(form.brandId)
     if (!Number.isInteger(category) || category <= 0 || !Number.isInteger(brand) || brand <= 0) {
-      toast.error('Select a valid category and brand.')
+      toast.error('Vui lòng chọn danh mục và thương hiệu hợp lệ.')
       return
     }
     setIsSavingProduct(true)
@@ -279,12 +280,12 @@ export function AdminProductFormPage() {
       if (id === null) {
         const created = await createAdminProductApi(payload)
         sessionStorage.setItem(variantCacheKey(created.id), JSON.stringify(created))
-        toast.success('Product created. Add variants and images below.')
+        toast.success('Đã tạo sản phẩm. Bạn có thể thêm phân loại và hình ảnh bên dưới.')
         navigate(`/admin/products/${created.id}/edit`, { replace: true })
       } else {
         const updated = await updateAdminProductApi(id, payload)
         saveProductState(updated)
-        toast.success('Product details updated.')
+        toast.success('Đã cập nhật thông tin sản phẩm.')
       }
     } catch (error) {
       toast.error(getErrorMessage(error))
@@ -299,7 +300,7 @@ export function AdminProductFormPage() {
     try {
       const updated = await updateAdminProductStatusApi(id, nextStatus)
       saveProductState(updated)
-      toast.success(`Product set to ${nextStatus.toLowerCase()}.`)
+      toast.success(`Sản phẩm đã chuyển sang trạng thái ${catalogStatusLabel(nextStatus).toLowerCase()}.`)
     } catch (error) {
       toast.error(getErrorMessage(error))
     }
@@ -316,7 +317,7 @@ export function AdminProductFormPage() {
     const price = Number(variantForm.price)
     const stock = Number(variantForm.stock)
     if (!variantForm.sku.trim() || !Number.isFinite(price) || price < 0 || !Number.isInteger(stock) || stock < 0) {
-      toast.error('Enter a non-empty SKU, a non-negative price, and a non-negative whole stock quantity.')
+      toast.error('Vui lòng nhập mã SKU, giá không âm và số lượng tồn kho là số nguyên không âm.')
       return
     }
     setIsSavingVariant(true)
@@ -333,7 +334,7 @@ export function AdminProductFormPage() {
       }))
       setVariantForm({ sku: '', price: '', stock: '0' })
       setEditingVariantId(null)
-      toast.success(editingVariantId === null ? 'Variant added.' : 'Variant updated.')
+      toast.success(editingVariantId === null ? 'Đã thêm phân loại sản phẩm.' : 'Đã cập nhật phân loại sản phẩm.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     } finally {
@@ -358,7 +359,7 @@ export function AdminProductFormPage() {
         ...current,
         variants: current.variants.map((item) => item.id === updated.id ? updated : item),
       }))
-      toast.success(`Variant set to ${nextStatus.toLowerCase()}.`)
+      toast.success(`Phân loại sản phẩm đã chuyển sang trạng thái ${catalogStatusLabel(nextStatus).toLowerCase()}.`)
     } catch (error) {
       toast.error(getErrorMessage(error))
     }
@@ -367,7 +368,7 @@ export function AdminProductFormPage() {
   async function handleStockUpdate(variant: ProductVariantResponse) {
     const stock = Number(stockDrafts[variant.id] ?? String(variant.stock))
     if (!Number.isInteger(stock) || stock < 0) {
-      toast.error('Stock must be a non-negative whole number.')
+      toast.error('Tồn kho phải là số nguyên không âm.')
       return
     }
     try {
@@ -377,7 +378,7 @@ export function AdminProductFormPage() {
         variants: current.variants.map((item) => item.id === updated.id ? updated : item),
       }))
       setStockDrafts((current) => ({ ...current, [variant.id]: String(updated.stock) }))
-      toast.success('Stock updated.')
+      toast.success('Đã cập nhật tồn kho.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     }
@@ -388,7 +389,7 @@ export function AdminProductFormPage() {
     if (!id || !productDetail) return
     const sortOrder = Number(imageSortOrder)
     if (!imageUrl.trim() || !Number.isInteger(sortOrder) || sortOrder < 0) {
-      toast.error('Enter an image URL and a non-negative sort order.')
+      toast.error('Vui lòng nhập đường dẫn hình ảnh và thứ tự hiển thị không âm.')
       return
     }
     setIsSavingImage(true)
@@ -399,7 +400,7 @@ export function AdminProductFormPage() {
       })
       updateProductDetail((current) => ({ ...current, images: [...current.images, image] }))
       setImageUrl('')
-      toast.success('Product image added.')
+      toast.success('Đã thêm hình ảnh sản phẩm.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     } finally {
@@ -410,12 +411,12 @@ export function AdminProductFormPage() {
   async function handleImageUpload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!id || !productDetail || !imageFile) {
-      toast.error('Choose an image file to upload.')
+      toast.error('Vui lòng chọn tệp hình ảnh cần tải lên.')
       return
     }
     const sortOrder = Number(imageSortOrder)
     if (!Number.isInteger(sortOrder) || sortOrder < 0) {
-      toast.error('Sort order must be a non-negative whole number.')
+      toast.error('Thứ tự hiển thị phải là số nguyên không âm.')
       return
     }
     setIsSavingImage(true)
@@ -428,7 +429,7 @@ export function AdminProductFormPage() {
       setImageFile(null)
       const fileInput = document.getElementById('productImageFile')
       if (fileInput instanceof HTMLInputElement) fileInput.value = ''
-      toast.success('Product image uploaded.')
+      toast.success('Đã tải hình ảnh sản phẩm lên.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     } finally {
@@ -444,28 +445,28 @@ export function AdminProductFormPage() {
         ...current,
         images: current.images.map((item) => ({ ...item, primaryImage: item.id === updated.id })),
       }))
-      toast.success('Primary image updated.')
+      toast.success('Đã cập nhật hình ảnh chính.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     }
   }
 
   async function handleDeleteImage(image: ProductImageResponse) {
-    if (!id || !window.confirm('Delete this product image?')) return
+    if (!id || !window.confirm('Bạn có chắc muốn xóa hình ảnh sản phẩm này?')) return
     try {
       await deleteProductImageApi(id, image.id)
       updateProductDetail((current) => ({
         ...current,
         images: current.images.filter((item) => item.id !== image.id),
       }))
-      toast.success('Product image deleted.')
+      toast.success('Đã xóa hình ảnh sản phẩm.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     }
   }
 
   if (productId && !validId) {
-    return <section className="page-section"><ErrorState message="Product ID is invalid." /></section>
+    return <section className="page-section"><ErrorState message="Mã sản phẩm không hợp lệ." /></section>
   }
 
   const productError = loadedProduct?.key === requestKey ? loadedProduct.error : undefined
@@ -475,12 +476,12 @@ export function AdminProductFormPage() {
     <section className="page-section">
       <header className="section-heading">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1>{id === null ? 'Create product' : `Manage ${productSummary?.name ?? 'product'}`}</h1>
+          <p className="eyebrow">Quản trị</p>
+          <h1>{id === null ? 'Thêm sản phẩm' : `Quản lý ${productSummary?.name ?? 'sản phẩm'}`}</h1>
         </div>
-        <Link className="button button-secondary" to="/admin/products">Back to products</Link>
+        <Link className="button button-secondary" to="/admin/products">Quay lại danh sách sản phẩm</Link>
       </header>
-      {currentOptions === null && <LoadingState message="Loading categories and brands…" />}
+      {currentOptions === null && <LoadingState message="Đang tải danh mục và thương hiệu..." />}
       {currentOptions?.error && (
         <ErrorState
           message={currentOptions.error}
@@ -494,17 +495,17 @@ export function AdminProductFormPage() {
       />
       {productSummary && (
         <p className="admin-product-status-line">
-          Status <span className={`status-badge status-${productSummary.status.toLowerCase()}`}>{productSummary.status}</span>
+          Trạng thái <span className={`status-badge status-${productSummary.status.toLowerCase()}`}>{catalogStatusLabel(productSummary.status)}</span>
           <button className="button button-secondary" onClick={() => void handleProductStatus()} type="button">
-            {productSummary.status === 'ACTIVE' ? 'Deactivate product' : 'Activate product'}
+            {productSummary.status === 'ACTIVE' ? 'Ngừng hoạt động' : 'Kích hoạt sản phẩm'}
           </button>
         </p>
       )}
       <section className="admin-detail-panel">
-        <h2>Product information</h2>
+        <h2>Thông tin sản phẩm</h2>
         <form className="admin-form-grid" onSubmit={handleProductSubmit}>
           <label>
-            Product name
+            Tên sản phẩm
             <input
               maxLength={200}
               onChange={(event) => setFormState({
@@ -526,10 +527,10 @@ export function AdminProductFormPage() {
               required
               value={form.categoryId}
             >
-              <option value="">Select category</option>
+              <option value="">Chọn danh mục</option>
               {currentOptions?.categories?.map((category) => (
                 <option disabled={category.status !== 'ACTIVE'} key={category.id} value={category.id}>
-                  {category.name}{category.status === 'INACTIVE' ? ' (inactive)' : ''}
+                  {category.name}{category.status === 'INACTIVE' ? ' (ngừng hoạt động)' : ''}
                 </option>
               ))}
             </select>
@@ -545,16 +546,16 @@ export function AdminProductFormPage() {
               required
               value={form.brandId}
             >
-              <option value="">Select brand</option>
+              <option value="">Chọn thương hiệu</option>
               {currentOptions?.brands?.map((brand: BrandResponse) => (
                 <option disabled={brand.status !== 'ACTIVE'} key={brand.id} value={brand.id}>
-                  {brand.name}{brand.status === 'INACTIVE' ? ' (inactive)' : ''}
+                  {brand.name}{brand.status === 'INACTIVE' ? ' (ngừng hoạt động)' : ''}
                 </option>
               ))}
             </select>
           </label>
           <label className="admin-form-wide">
-            Description
+            Mô tả
             <textarea
               maxLength={10000}
               onChange={(event) => setFormState({
@@ -567,7 +568,7 @@ export function AdminProductFormPage() {
           </label>
           <div className="admin-form-wide">
             <button className="button button-primary" disabled={isSavingProduct || !currentOptions?.categories || !currentOptions.brands} type="submit">
-              {isSavingProduct ? 'Saving…' : id === null ? 'Create product' : 'Save product'}
+              {isSavingProduct ? 'Đang lưu...' : id === null ? 'Tạo sản phẩm' : 'Lưu sản phẩm'}
             </button>
           </div>
         </form>
@@ -577,30 +578,30 @@ export function AdminProductFormPage() {
         <>
           {!productDetail && (
             <p className="admin-info-note" role="status">
-              Product variants and images are not available from a separate Admin detail endpoint.
-              Activate the product to load its public detail, or continue managing new data in this session.
+              API hiện chưa cung cấp endpoint quản trị riêng để tải phân loại và hình ảnh.
+              Hãy kích hoạt sản phẩm để tải thông tin công khai hoặc tiếp tục quản lý dữ liệu mới trong phiên này.
             </p>
           )}
           <section className="admin-detail-panel">
-            <h2>Variants</h2>
+            <h2>Phân loại sản phẩm</h2>
             <form className="admin-inline-form" onSubmit={(event) => void handleVariantSubmit(event)}>
               <label>SKU<input maxLength={100} onChange={(event) => setVariantForm((current) => ({ ...current, sku: event.target.value }))} required value={variantForm.sku} /></label>
-              <label>Price<input min="0" onChange={(event) => setVariantForm((current) => ({ ...current, price: event.target.value }))} required step="any" type="number" value={variantForm.price} /></label>
-              <label>Stock<input min="0" onChange={(event) => setVariantForm((current) => ({ ...current, stock: event.target.value }))} required step="1" type="number" value={variantForm.stock} /></label>
+              <label>Giá bán<input min="0" onChange={(event) => setVariantForm((current) => ({ ...current, price: event.target.value }))} required step="any" type="number" value={variantForm.price} /></label>
+              <label>Tồn kho<input min="0" onChange={(event) => setVariantForm((current) => ({ ...current, stock: event.target.value }))} required step="1" type="number" value={variantForm.stock} /></label>
               <button className="button button-primary" disabled={isSavingVariant || !productDetail} type="submit">
-                {isSavingVariant ? 'Saving…' : editingVariantId === null ? 'Add variant' : 'Save variant'}
+                {isSavingVariant ? 'Đang lưu...' : editingVariantId === null ? 'Thêm phân loại' : 'Lưu phân loại'}
               </button>
               {editingVariantId !== null && (
                 <button className="button button-secondary" onClick={() => { setEditingVariantId(null); setVariantForm({ sku: '', price: '', stock: '0' }) }} type="button">
-                  Cancel edit
+                  Hủy chỉnh sửa
                 </button>
               )}
             </form>
-            {productDetail?.variants.length === 0 && <p className="empty-state">No variants yet.</p>}
+            {productDetail?.variants.length === 0 && <p className="empty-state">Chưa có phân loại sản phẩm.</p>}
             {productDetail && productDetail.variants.length > 0 && (
               <div className="table-scroll">
                 <table className="data-table">
-                  <thead><tr><th>SKU</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+                  <thead><tr><th>Mã SKU</th><th>Giá bán</th><th>Tồn kho</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
                   <tbody>
                     {productDetail.variants.map((variant) => (
                       <tr key={variant.id}>
@@ -609,22 +610,22 @@ export function AdminProductFormPage() {
                         <td>
                           <div className="stock-edit">
                             <input
-                              aria-label={`Stock for ${variant.sku}`}
+                              aria-label={`Tồn kho của ${variant.sku}`}
                               min="0"
                               onChange={(event) => setStockDrafts((current) => ({ ...current, [variant.id]: event.target.value }))}
                               step="1"
                               type="number"
                               value={stockDrafts[variant.id] ?? String(variant.stock)}
                             />
-                            <button className="text-button" onClick={() => void handleStockUpdate(variant)} type="button">Update</button>
+                            <button className="text-button" onClick={() => void handleStockUpdate(variant)} type="button">Cập nhật</button>
                           </div>
                         </td>
-                        <td><span className={`status-badge status-${variant.status.toLowerCase()}`}>{variant.status}</span></td>
+                        <td><span className={`status-badge status-${variant.status.toLowerCase()}`}>{catalogStatusLabel(variant.status)}</span></td>
                         <td>
                           <div className="table-actions">
-                            <button className="text-button" onClick={() => beginVariantEdit(variant)} type="button">Edit</button>
+                            <button className="text-button" onClick={() => beginVariantEdit(variant)} type="button">Chỉnh sửa</button>
                             <button className="text-button" onClick={() => void handleVariantStatus(variant)} type="button">
-                              {variant.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                              {variant.status === 'ACTIVE' ? 'Ngừng hoạt động' : 'Kích hoạt'}
                             </button>
                           </div>
                         </td>
@@ -636,30 +637,30 @@ export function AdminProductFormPage() {
             )}
           </section>
           <section className="admin-detail-panel">
-            <h2>Product images</h2>
+            <h2>Hình ảnh sản phẩm</h2>
             <form className="admin-inline-form" onSubmit={(event) => void handleImageSubmit(event)}>
-              <label>Image URL<input onChange={(event) => setImageUrl(event.target.value)} required type="url" value={imageUrl} /></label>
-              <label>Sort order<input min="0" onChange={(event) => setImageSortOrder(event.target.value)} required step="1" type="number" value={imageSortOrder} /></label>
-              <button className="button button-primary" disabled={isSavingImage || !productDetail} type="submit">Add image URL</button>
+              <label>Đường dẫn hình ảnh<input onChange={(event) => setImageUrl(event.target.value)} required type="url" value={imageUrl} /></label>
+              <label>Thứ tự hiển thị<input min="0" onChange={(event) => setImageSortOrder(event.target.value)} required step="1" type="number" value={imageSortOrder} /></label>
+              <button className="button button-primary" disabled={isSavingImage || !productDetail} type="submit">Thêm đường dẫn ảnh</button>
             </form>
             <form className="admin-inline-form" onSubmit={(event) => void handleImageUpload(event)}>
-              <label>Upload image<input accept="image/*" id="productImageFile" onChange={(event) => setImageFile(event.target.files?.[0] ?? null)} type="file" /></label>
+              <label>Tải hình ảnh lên<input accept="image/*" id="productImageFile" onChange={(event) => setImageFile(event.target.files?.[0] ?? null)} type="file" /></label>
               <button className="button button-secondary" disabled={isSavingImage || !productDetail || !imageFile} type="submit">
-                {isSavingImage ? 'Uploading…' : 'Upload file'}
+                {isSavingImage ? 'Đang tải lên...' : 'Tải tệp lên'}
               </button>
             </form>
-            {productDetail?.images.length === 0 && <p className="empty-state">No product images yet.</p>}
+            {productDetail?.images.length === 0 && <p className="empty-state">Chưa có hình ảnh sản phẩm.</p>}
             {productDetail && productDetail.images.length > 0 && (
               <div className="admin-image-grid">
                 {productDetail.images.map((image) => (
                   <article className="admin-image-card" key={image.id}>
                     <img alt="" loading="lazy" src={image.imageUrl} />
-                    <p>{image.primaryImage ? 'Primary image' : `Sort order ${image.sortOrder}`}</p>
+                    <p>{image.primaryImage ? 'Hình ảnh chính' : `Thứ tự hiển thị ${image.sortOrder}`}</p>
                     <div className="table-actions">
                       {!image.primaryImage && (
-                        <button className="text-button" onClick={() => void handleSetPrimary(image)} type="button">Set primary</button>
+                        <button className="text-button" onClick={() => void handleSetPrimary(image)} type="button">Đặt làm ảnh chính</button>
                       )}
-                      <button className="text-button danger-text" onClick={() => void handleDeleteImage(image)} type="button">Delete</button>
+                      <button className="text-button danger-text" onClick={() => void handleDeleteImage(image)} type="button">Xóa</button>
                     </div>
                   </article>
                 ))}

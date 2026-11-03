@@ -1,23 +1,23 @@
 import { useLocation } from 'react-router-dom'
 
 const sectionNames: Record<string, string> = {
-  dashboard: 'Dashboard',
-  orders: 'Order management',
-  vouchers: 'Voucher management',
-  reviews: 'Review moderation',
+  dashboard: 'Tổng quan',
+  orders: 'Quản lý đơn hàng',
+  vouchers: 'Quản lý mã giảm giá',
+  reviews: 'Quản lý đánh giá',
 }
 
 export function AdminSectionPage() {
   const { pathname } = useLocation()
   const section = pathname.split('/').filter(Boolean).at(-1) ?? 'dashboard'
-  const title = sectionNames[section] ?? 'Admin'
+  const title = sectionNames[section] ?? 'Quản trị'
 
   return (
     <section className="page-section">
-      <p className="eyebrow">Admin</p>
+      <p className="eyebrow">Quản trị</p>
       <h1>{title}</h1>
       <p className="page-intro">
-        This section is ready for its Spring Boot API-backed workflow.
+        Khu vực này đã sẵn sàng để kết nối với API của hệ thống.
       </p>
     </section>
   )

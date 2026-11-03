@@ -6,6 +6,7 @@ import type { OrderResponse, PaymentResponse } from '../types/commerce'
 import { useToast } from '../hooks/useToast'
 import { formatCurrency } from '../utils/formatCurrency'
 import { getErrorMessage } from '../utils/getErrorMessage'
+import { orderStatusLabel, paymentMethodLabel, paymentStatusLabel } from '../utils/localization'
 
 interface PaymentState {
   payment: PaymentResponse
@@ -63,7 +64,7 @@ export function PaymentPage() {
         ? await confirmPaymentApi(id)
         : await failPaymentApi(id)
       setLoadState({ key: requestKey, status: 'success', result: { ...result, payment } })
-      toast.success(action === 'confirm' ? 'Simulated payment confirmed.' : 'Simulated payment marked as failed.')
+      toast.success(action === 'confirm' ? 'Đã xác nhận thanh toán mô phỏng.' : 'Đã đánh dấu thanh toán thất bại.')
     } catch (requestError) {
       toast.error(getErrorMessage(requestError))
     } finally {
@@ -73,12 +74,12 @@ export function PaymentPage() {
 
   return (
     <main className="customer-page payment-page">
-      <Link className="text-link" to={`/my-orders/${id}`}>← Back to order details</Link>
+      <Link className="text-link" to={`/my-orders/${id}`}>← Quay lại chi tiết đơn hàng</Link>
       <section className="customer-panel payment-panel">
-        <p className="eyebrow">Online payment · simulation</p>
-        <h1>Payment for order #{isValidId ? id : '—'}</h1>
-        {!isValidId && <p className="form-error" role="alert">The order ID is invalid.</p>}
-        {isLoading && <p className="loading-state" role="status">Loading payment…</p>}
+        <p className="eyebrow">Thanh toán trực tuyến · mô phỏng</p>
+        <h1>Thanh toán đơn hàng #{isValidId ? id : '—'}</h1>
+        {!isValidId && <p className="form-error" role="alert">Mã đơn hàng không hợp lệ.</p>}
+        {isLoading && <p className="loading-state" role="status">Đang tải thông tin thanh toán...</p>}
         {error && (
           <>
             <p className="form-error" role="alert">{error}</p>
@@ -87,21 +88,21 @@ export function PaymentPage() {
               onClick={() => setReloadVersion((version) => version + 1)}
               type="button"
             >
-              Retry
+              Thử lại
             </button>
           </>
         )}
         {!isLoading && !error && result && (
           <>
             <p className="payment-simulation-note">
-              This is a simulated payment flow. It does not charge a card or contact a payment provider.
+              Đây là luồng thanh toán mô phỏng, không thu tiền và không kết nối với cổng thanh toán.
             </p>
             <dl className="payment-details">
-              <div><dt>Amount</dt><dd>{formatCurrency(result.payment.amount)}</dd></div>
-              <div><dt>Method</dt><dd>{result.payment.method}</dd></div>
-              <div><dt>Payment status</dt><dd>{result.payment.status}</dd></div>
-              <div><dt>Order status</dt><dd>{result.order.status}</dd></div>
-              <div><dt>Transaction reference</dt><dd>{result.payment.transactionRef ?? 'Not assigned'}</dd></div>
+              <div><dt>Số tiền</dt><dd>{formatCurrency(result.payment.amount)}</dd></div>
+              <div><dt>Phương thức</dt><dd>{paymentMethodLabel(result.payment.method)}</dd></div>
+              <div><dt>Trạng thái thanh toán</dt><dd>{paymentStatusLabel(result.payment.status)}</dd></div>
+              <div><dt>Trạng thái đơn hàng</dt><dd>{orderStatusLabel(result.order.status)}</dd></div>
+              <div><dt>Mã giao dịch</dt><dd>{result.payment.transactionRef ?? 'Chưa có'}</dd></div>
             </dl>
             {result.order.status === 'PENDING' && result.payment.status !== 'PAID' ? (
               <div className="customer-review-actions">
@@ -111,7 +112,7 @@ export function PaymentPage() {
                   onClick={() => void processPayment('confirm')}
                   type="button"
                 >
-                  {isWorking ? 'Processing…' : 'Simulate successful payment'}
+                  {isWorking ? 'Đang xử lý...' : 'Mô phỏng thanh toán thành công'}
                 </button>
                 <button
                   className="button button-secondary"
@@ -119,18 +120,18 @@ export function PaymentPage() {
                   onClick={() => void processPayment('fail')}
                   type="button"
                 >
-                  Simulate failed payment
+                  Mô phỏng thanh toán thất bại
                 </button>
               </div>
             ) : (
               <p className="muted-text">
                 {result.payment.status === 'PAID'
-                  ? 'Payment is complete.'
-                  : 'This order is no longer awaiting payment.'}
+                  ? 'Đơn hàng đã được thanh toán.'
+                  : 'Đơn hàng này không còn chờ thanh toán.'}
               </p>
             )}
             <Link className="text-link payment-order-link" to={`/my-orders/${id}`}>
-              View order details
+              Xem chi tiết đơn hàng
             </Link>
           </>
         )}

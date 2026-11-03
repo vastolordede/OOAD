@@ -33,15 +33,15 @@ export function ForgotPasswordPage() {
   return (
     <main className="auth-page">
       <section className="auth-card">
-        <Link className="auth-back-link" to="/">OOAD Cosmetics</Link>
-        <p className="eyebrow">Account recovery</p>
-        <h1>Forgot password?</h1>
-        <p className="page-intro">Enter your email to request a password reset.</p>
+        <Link className="auth-back-link" to="/">Mỹ Phẩm Tơ Ràn</Link>
+        <p className="eyebrow">Khôi phục tài khoản</p>
+        <h1>Quên mật khẩu?</h1>
+        <p className="page-intro">Nhập email để yêu cầu đặt lại mật khẩu.</p>
         <form className="auth-form" onSubmit={handleSubmit}>
-          <label htmlFor="forgotEmail">Email</label>
+          <label htmlFor="forgotEmail">Địa chỉ email</label>
           <input autoComplete="email" id="forgotEmail" onChange={(event) => setEmail(event.target.value)} required type="email" value={email} />
           <button className="button button-primary button-full" disabled={isSubmitting} type="submit">
-            {isSubmitting ? 'Sending…' : 'Request reset'}
+            {isSubmitting ? 'Đang gửi...' : 'Gửi yêu cầu'}
           </button>
         </form>
         {result && (
@@ -49,14 +49,14 @@ export function ForgotPasswordPage() {
             <p>{result.message}</p>
             {resetToken && (
               <>
-                <p><strong>Demo reset token:</strong></p>
+                <p><strong>Mã đặt lại mật khẩu (bản thử nghiệm):</strong></p>
                 <code className="reset-token">{resetToken}</code>
-                {resetUrl && <Link className="button button-secondary button-full" to={resetUrl}>Continue to reset password</Link>}
+                {resetUrl && <Link className="button button-secondary button-full" to={resetUrl}>Tiếp tục đặt lại mật khẩu</Link>}
               </>
             )}
           </div>
         )}
-        <p className="auth-secondary-link"><Link className="text-link" to="/login">Back to sign in</Link></p>
+        <p className="auth-secondary-link"><Link className="text-link" to="/login">Quay lại đăng nhập</Link></p>
       </section>
     </main>
   )

@@ -12,39 +12,39 @@ export function Navbar() {
 
   return (
     <header className="site-header">
-      <nav aria-label="Main navigation" className="site-nav">
+      <nav aria-label="Điều hướng chính" className="site-nav">
         <Link className="site-brand" to="/">
-          OOAD Cosmetics
+          Mỹ Phẩm Tơ Ràn
         </Link>
         <div className="site-nav-links">
           <NavLink className={({ isActive }) => isActive ? 'site-nav-link is-active' : 'site-nav-link'} to="/products">
-            Catalog
+            Sản phẩm
           </NavLink>
           {!user && (
             <>
-              <Link className="button button-secondary" to="/login">Sign in</Link>
-              <Link className="button button-primary" to="/register">Register</Link>
+              <Link className="button button-secondary" to="/login">Đăng nhập</Link>
+              <Link className="button button-primary" to="/register">Đăng ký</Link>
             </>
           )}
           {user?.role === 'CUSTOMER' && (
             <>
-              <Link className="site-nav-link" to="/cart">Cart</Link>
-              <Link className="site-nav-link" to="/my-orders">Orders</Link>
-              <Link className="site-nav-link" to="/wishlist">Wishlist</Link>
-              <Link className="site-nav-link" to="/profile">Profile</Link>
-              <Link className="site-nav-link" to="/addresses">Addresses</Link>
+              <Link className="site-nav-link" to="/cart">Giỏ hàng</Link>
+              <Link className="site-nav-link" to="/my-orders">Đơn hàng</Link>
+              <Link className="site-nav-link" to="/wishlist">Yêu thích</Link>
+              <Link className="site-nav-link" to="/profile">Tài khoản</Link>
+              <Link className="site-nav-link" to="/addresses">Địa chỉ</Link>
               <span className="site-user-name">{user.fullName}</span>
               <button className="button button-secondary" onClick={handleSignOut} type="button">
-                Sign out
+                Đăng xuất
               </button>
             </>
           )}
           {user?.role === 'ADMIN' && (
             <>
-              <Link className="site-nav-link" to="/admin/dashboard">Admin Panel</Link>
+              <Link className="site-nav-link" to="/admin/dashboard">Trang quản trị</Link>
               <span className="site-user-name">{user.fullName}</span>
               <button className="button button-secondary" onClick={handleSignOut} type="button">
-                Sign out
+                Đăng xuất
               </button>
             </>
           )}
@@ -57,8 +57,8 @@ export function Navbar() {
 export function Footer() {
   return (
     <footer className="site-footer">
-      <span>OOAD Cosmetics</span>
-      <span>© {new Date().getFullYear()} — Care, confidence, and beauty.</span>
+      <span>Mỹ Phẩm Tơ Ràn</span>
+      <span>© {new Date().getFullYear()} — Chăm sóc làn da, tôn vinh vẻ đẹp của bạn.</span>
     </footer>
   )
 }

@@ -109,26 +109,26 @@ export function AdminVoucherFormPage() {
     const endDate = new Date(form.endDate)
 
     if (!Number.isFinite(discountValue) || discountValue <= 0) {
-      setFormError('Discount value must be greater than zero.')
+      setFormError('Mức giảm giá phải lớn hơn 0.')
       return
     }
     if (
       form.discountType === 'PERCENTAGE' &&
       (discountValue > 100 || discountValue <= 0)
     ) {
-      setFormError('Percentage discount must be greater than zero and no more than 100.')
+      setFormError('Mức giảm theo phần trăm phải lớn hơn 0 và không vượt quá 100%.')
       return
     }
     if (minOrderValue !== null && (!Number.isFinite(minOrderValue) || minOrderValue < 0)) {
-      setFormError('Minimum order value must be zero or greater.')
+      setFormError('Giá trị đơn hàng tối thiểu phải từ 0 trở lên.')
       return
     }
     if (maxDiscount !== null && (!Number.isFinite(maxDiscount) || maxDiscount <= 0)) {
-      setFormError('Maximum discount must be greater than zero.')
+      setFormError('Mức giảm tối đa phải lớn hơn 0.')
       return
     }
     if (usageLimit !== null && (!Number.isInteger(usageLimit) || usageLimit < 1)) {
-      setFormError('Usage limit must be a whole number of at least one.')
+      setFormError('Giới hạn lượt sử dụng phải là số nguyên từ 1 trở lên.')
       return
     }
     if (
@@ -136,7 +136,7 @@ export function AdminVoucherFormPage() {
       !Number.isFinite(endDate.getTime()) ||
       startDate >= endDate
     ) {
-      setFormError('End date must be later than start date.')
+      setFormError('Thời điểm kết thúc phải sau thời điểm bắt đầu.')
       return
     }
 
@@ -159,7 +159,7 @@ export function AdminVoucherFormPage() {
       } else {
         await createVoucherApi(payload)
       }
-      toast.success(`Voucher ${id === null ? 'created' : 'updated'} successfully.`)
+      toast.success(id === null ? 'Tạo mã giảm giá thành công.' : 'Cập nhật mã giảm giá thành công.')
       navigate('/admin/vouchers', { replace: true })
     } catch (error) {
       setFormError(getErrorMessage(error))
@@ -170,11 +170,11 @@ export function AdminVoucherFormPage() {
   }
 
   if (!isValidId) {
-    return <section className="page-section"><p className="form-error" role="alert">Voucher ID is invalid.</p></section>
+    return <section className="page-section"><p className="form-error" role="alert">Mã giảm giá không hợp lệ.</p></section>
   }
 
   if (isLoading) {
-    return <section className="page-section"><p className="loading-state" role="status">Loading voucher…</p></section>
+    return <section className="page-section"><p className="loading-state" role="status">Đang tải mã giảm giá...</p></section>
   }
 
   if (loadError) {
@@ -186,35 +186,35 @@ export function AdminVoucherFormPage() {
           onClick={() => setReloadVersion((version) => version + 1)}
           type="button"
         >
-          Retry
+          Thử lại
         </button>
       </section>
     )
   }
 
   if (isEdit && !voucher) {
-    return <section className="page-section"><p className="loading-state" role="status">Loading voucher…</p></section>
+    return <section className="page-section"><p className="loading-state" role="status">Đang tải mã giảm giá...</p></section>
   }
 
   return (
     <section className="page-section voucher-form-page">
       <header className="section-heading">
         <div>
-          <p className="eyebrow">Admin · Vouchers</p>
-          <h1>{isEdit ? 'Edit voucher' : 'Create voucher'}</h1>
+          <p className="eyebrow">Quản trị · Mã giảm giá</p>
+          <h1>{isEdit ? 'Chỉnh sửa mã giảm giá' : 'Tạo mã giảm giá'}</h1>
         </div>
-        <Link className="text-link" to="/admin/vouchers">Back to vouchers</Link>
+        <Link className="text-link" to="/admin/vouchers">Quay lại danh sách mã</Link>
       </header>
 
       {voucher && (
         <p className="voucher-usage-note">
-          Usage: {voucher.usedCount} / {voucher.usageLimit ?? 'unlimited'}
+          Lượt sử dụng: {voucher.usedCount} / {voucher.usageLimit ?? 'không giới hạn'}
         </p>
       )}
 
       <form className="voucher-form" onSubmit={handleSubmit}>
         <label>
-          Code
+          Mã giảm giá
           <input
             maxLength={50}
             minLength={3}
@@ -225,7 +225,7 @@ export function AdminVoucherFormPage() {
           />
         </label>
         <label className="voucher-form-wide">
-          Description
+          Mô tả
           <input
             maxLength={255}
             onChange={(event) => setForm({ ...form, description: event.target.value })}
@@ -233,7 +233,7 @@ export function AdminVoucherFormPage() {
           />
         </label>
         <label>
-          Discount type
+          Loại giảm giá
           <select
             onChange={(event) =>
               setForm({
@@ -243,12 +243,12 @@ export function AdminVoucherFormPage() {
             }
             value={form.discountType}
           >
-            <option value="FIXED">Fixed amount</option>
-            <option value="PERCENTAGE">Percentage</option>
+            <option value="FIXED">Số tiền cố định</option>
+            <option value="PERCENTAGE">Phần trăm</option>
           </select>
         </label>
         <label>
-          Discount value
+          Giá trị giảm
           <input
             min="0.01"
             max={form.discountType === 'PERCENTAGE' ? 100 : undefined}
@@ -260,7 +260,7 @@ export function AdminVoucherFormPage() {
           />
         </label>
         <label>
-          Minimum order value
+          Giá trị đơn hàng tối thiểu
           <input
             min="0"
             onChange={(event) => setForm({ ...form, minOrderValue: event.target.value })}
@@ -271,7 +271,7 @@ export function AdminVoucherFormPage() {
         </label>
         {form.discountType === 'PERCENTAGE' && (
           <label>
-            Maximum discount
+            Mức giảm tối đa
             <input
               min="0.01"
               onChange={(event) => setForm({ ...form, maxDiscount: event.target.value })}
@@ -282,7 +282,7 @@ export function AdminVoucherFormPage() {
           </label>
         )}
         <label>
-          Usage limit (optional)
+          Giới hạn lượt sử dụng (không bắt buộc)
           <input
             min="1"
             onChange={(event) => setForm({ ...form, usageLimit: event.target.value })}
@@ -292,7 +292,7 @@ export function AdminVoucherFormPage() {
           />
         </label>
         <label>
-          Starts at
+          Bắt đầu lúc
           <input
             onChange={(event) => setForm({ ...form, startDate: event.target.value })}
             required
@@ -301,7 +301,7 @@ export function AdminVoucherFormPage() {
           />
         </label>
         <label>
-          Ends at
+          Kết thúc lúc
           <input
             onChange={(event) => setForm({ ...form, endDate: event.target.value })}
             required
@@ -313,9 +313,9 @@ export function AdminVoucherFormPage() {
         {formError && <p className="form-error voucher-form-wide" role="alert">{formError}</p>}
         <div className="voucher-form-actions voucher-form-wide">
           <button className="button button-primary" disabled={isSaving} type="submit">
-            {isSaving ? 'Saving…' : isEdit ? 'Save changes' : 'Create voucher'}
+            {isSaving ? 'Đang lưu...' : isEdit ? 'Lưu thay đổi' : 'Tạo mã giảm giá'}
           </button>
-          <Link className="button button-secondary button-link" to="/admin/vouchers">Cancel</Link>
+          <Link className="button button-secondary button-link" to="/admin/vouchers">Hủy</Link>
         </div>
       </form>
     </section>

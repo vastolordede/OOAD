@@ -10,7 +10,7 @@ import {
 } from '../components/common/AdminCatalogManagementPage'
 
 const config: AdminCatalogConfig = {
-  entityName: 'Brand',
+  entityName: 'thương hiệu',
   list: (page, size) => listAdminBrandsApi({ page, size }),
   create: (name) => createAdminBrandApi({ name }),
   update: (id, name) => updateAdminBrandApi(id, { name }),

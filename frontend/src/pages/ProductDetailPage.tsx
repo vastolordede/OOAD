@@ -13,6 +13,7 @@ import { useToast } from '../hooks/useToast'
 import type { ProductDetailResponse } from '../types/product'
 import { getErrorMessage } from '../utils/getErrorMessage'
 import { formatCurrency } from '../utils/formatCurrency'
+import { catalogStatusLabel } from '../utils/localization'
 
 interface ProductState {
   key: string
@@ -91,30 +92,30 @@ export function ProductDetailPage() {
     return (
       <main className="customer-page">
         <section className="customer-panel">
-          <h1>Product not found</h1>
-          <p className="form-error" role="alert">The product ID is invalid.</p>
-          <Link className="text-link" to="/">Return home</Link>
+          <h1>Không tìm thấy sản phẩm</h1>
+          <p className="form-error" role="alert">Mã sản phẩm không hợp lệ.</p>
+          <Link className="text-link" to="/">Về trang chủ</Link>
         </section>
       </main>
     )
   }
 
   if (isLoading) {
-    return <main className="customer-page"><p className="loading-state" role="status">Loading product…</p></main>
+    return <main className="customer-page"><p className="loading-state" role="status">Đang tải sản phẩm...</p></main>
   }
 
   if (error) {
     return (
       <main className="customer-page">
         <section className="customer-panel">
-          <h1>Unable to load product</h1>
+          <h1>Không thể tải sản phẩm</h1>
           <p className="form-error" role="alert">{error}</p>
           <button
             className="button button-secondary"
             onClick={() => setReloadVersion((version) => version + 1)}
             type="button"
           >
-            Retry
+            Thử lại
           </button>
         </section>
       </main>
@@ -122,7 +123,7 @@ export function ProductDetailPage() {
   }
 
   if (!product) {
-    return <main className="customer-page"><p className="loading-state" role="status">Loading product…</p></main>
+    return <main className="customer-page"><p className="loading-state" role="status">Đang tải sản phẩm...</p></main>
   }
 
   const primaryImage =
@@ -132,7 +133,7 @@ export function ProductDetailPage() {
     setAddingVariantId(variantId)
     try {
       await addCartItemApi({ variantId, quantity: 1 })
-      toast.success('Product added to cart.')
+      toast.success('Đã thêm sản phẩm vào giỏ hàng.')
       navigate('/cart')
     } catch (requestError) {
       toast.error(getErrorMessage(requestError))
@@ -147,11 +148,11 @@ export function ProductDetailPage() {
       if (isWishlisted) {
         await removeWishlistItemApi(productId)
         setWishlistResult({ key: wishlistKey, isWishlisted: false })
-        toast.success('Product removed from wishlist.')
+        toast.success('Đã xóa sản phẩm khỏi danh sách yêu thích.')
       } else {
         await addWishlistItemApi(productId)
         setWishlistResult({ key: wishlistKey, isWishlisted: true })
-        toast.success('Product added to wishlist.')
+        toast.success('Đã thêm sản phẩm vào danh sách yêu thích.')
       }
     } catch (requestError) {
       toast.error(getErrorMessage(requestError))
@@ -162,13 +163,13 @@ export function ProductDetailPage() {
 
   return (
     <main className="customer-page product-page">
-      <Link className="text-link" to="/">Return home</Link>
+      <Link className="text-link" to="/">Về trang chủ</Link>
       <section className="customer-panel product-summary">
         <div className="product-photo">
           {primaryImage ? (
             <img alt={product.name} src={primaryImage.imageUrl} />
           ) : (
-            <span>No image available</span>
+            <span>Chưa có hình ảnh</span>
           )}
         </div>
         <div className="product-information">
@@ -176,17 +177,18 @@ export function ProductDetailPage() {
           <h1>{product.name}</h1>
           {product.description && <p>{product.description}</p>}
           <p className="product-price">
-            {product.minPrice === null ? 'Price unavailable' : `From ${formatCurrency(product.minPrice)}`}
+            {product.minPrice === null ? 'Chưa có giá' : `Từ ${formatCurrency(product.minPrice)}`}
           </p>
-          <h2>Variants</h2>
+          <h2>Phân loại sản phẩm</h2>
           <ul className="product-variants">
             {product.variants.map((variant) => (
               <li key={variant.id}>
                 <div>
                   <span>{variant.sku}</span>
                   <strong>{formatCurrency(variant.price)}</strong>
-                  <span>{variant.stock} in stock</span>
+                  <span>Tồn kho: {variant.stock}</span>
                 </div>
+                <span className={`status-badge status-${variant.status.toLowerCase()}`}>{catalogStatusLabel(variant.status)}</span>
                 {user?.role === 'CUSTOMER' && (
                   <button
                     className="button button-secondary"
@@ -194,11 +196,11 @@ export function ProductDetailPage() {
                     onClick={() => void handleAddToCart(variant.id)}
                     type="button"
                   >
-                    {addingVariantId === variant.id ? 'Adding…' : 'Add to cart'}
+                    {addingVariantId === variant.id ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}
                   </button>
                 )}
                 {!user && (
-                  <Link className="text-link" to="/login">Sign in to buy</Link>
+                  <Link className="text-link" to="/login">Đăng nhập để mua hàng</Link>
                 )}
               </li>
             ))}
@@ -212,15 +214,15 @@ export function ProductDetailPage() {
                 type="button"
               >
                 {isUpdatingWishlist
-                  ? 'Updating…'
+                  ? 'Đang cập nhật...'
                   : wishlistResult?.key !== wishlistKey
-                    ? 'Loading wishlist…'
+                    ? 'Đang tải danh sách yêu thích...'
                     : isWishlisted
-                      ? 'Remove from wishlist'
-                      : 'Add to wishlist'}
+                      ? 'Xóa khỏi danh sách yêu thích'
+                      : 'Thêm vào danh sách yêu thích'}
               </button>
-              <Link className="text-link" to="/cart">View cart</Link>
-              <Link className="text-link" to="/wishlist">View wishlist</Link>
+              <Link className="text-link" to="/cart">Xem giỏ hàng</Link>
+              <Link className="text-link" to="/wishlist">Xem sản phẩm yêu thích</Link>
             </div>
           )}
         </div>

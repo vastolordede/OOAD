@@ -44,7 +44,7 @@ export function AdminInventoryPage() {
     event.preventDefault()
     const nextThreshold = Number(thresholdDraft)
     if (!Number.isInteger(nextThreshold) || nextThreshold < 0) {
-      toast.error('Threshold must be a non-negative whole number.')
+      toast.error('Ngưỡng tồn kho phải là số nguyên không âm.')
       return
     }
     setThreshold(nextThreshold)
@@ -54,13 +54,13 @@ export function AdminInventoryPage() {
   async function handleStockUpdate(variant: ProductVariantResponse) {
     const stock = Number(stockDrafts[variant.id] ?? String(variant.stock))
     if (!Number.isInteger(stock) || stock < 0) {
-      toast.error('Stock must be a non-negative whole number.')
+      toast.error('Tồn kho phải là số nguyên không âm.')
       return
     }
     setWorkingId(variant.id)
     try {
       await updateVariantStockApi(variant.id, { stock })
-      toast.success(`Stock updated for ${variant.sku}.`)
+      toast.success(`Đã cập nhật tồn kho cho mã SKU ${variant.sku}.`)
       setReloadVersion((version) => version + 1)
     } catch (error) {
       toast.error(getErrorMessage(error))
@@ -73,13 +73,13 @@ export function AdminInventoryPage() {
     <section className="page-section">
       <header className="section-heading">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1>Inventory</h1>
+          <p className="eyebrow">Quản trị</p>
+          <h1>Quản lý kho hàng</h1>
         </div>
       </header>
       <form className="admin-filter-form" onSubmit={handleThreshold}>
         <label>
-          Low-stock threshold
+          Ngưỡng cảnh báo tồn kho
           <input
             min="0"
             onChange={(event) => setThresholdDraft(event.target.value)}
@@ -88,9 +88,9 @@ export function AdminInventoryPage() {
             value={thresholdDraft}
           />
         </label>
-        <button className="button button-secondary" type="submit">Apply threshold</button>
+        <button className="button button-secondary" type="submit">Áp dụng ngưỡng</button>
       </form>
-      {currentResult === null && <LoadingState message="Loading low-stock variants…" />}
+      {currentResult === null && <LoadingState message="Đang tải sản phẩm sắp hết hàng..." />}
       {currentResult?.error && (
         <ErrorState
           message={currentResult.error}
@@ -100,11 +100,11 @@ export function AdminInventoryPage() {
       {currentResult?.page && (
         <>
           {currentResult.page.content.length === 0 ? (
-            <p className="empty-state">No active variants are at or below {threshold} units.</p>
+            <p className="empty-state">Không có phân loại đang hoạt động nào còn tối đa {threshold} sản phẩm.</p>
           ) : (
             <div className="table-scroll">
               <table className="data-table">
-                <thead><tr><th>Product</th><th>SKU</th><th>Current stock</th><th>New stock</th><th>Action</th></tr></thead>
+                <thead><tr><th>Sản phẩm</th><th>Mã SKU</th><th>Tồn kho hiện tại</th><th>Tồn kho mới</th><th>Thao tác</th></tr></thead>
                 <tbody>
                   {currentResult.page.content.map((variant) => (
                     <tr key={variant.id}>
@@ -113,7 +113,7 @@ export function AdminInventoryPage() {
                       <td><strong className="stock-warning">{variant.stock}</strong></td>
                       <td>
                         <input
-                          aria-label={`New stock for ${variant.sku}`}
+                          aria-label={`Số lượng tồn kho mới cho ${variant.sku}`}
                           min="0"
                           onChange={(event) => setStockDrafts((current) => ({ ...current, [variant.id]: event.target.value }))}
                           step="1"
@@ -128,7 +128,7 @@ export function AdminInventoryPage() {
                           onClick={() => void handleStockUpdate(variant)}
                           type="button"
                         >
-                          {workingId === variant.id ? 'Updating…' : 'Update stock'}
+                          {workingId === variant.id ? 'Đang cập nhật...' : 'Cập nhật tồn kho'}
                         </button>
                       </td>
                     </tr>

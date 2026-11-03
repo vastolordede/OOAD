@@ -5,6 +5,7 @@ import type { PageResponse } from '../types/api'
 import type { AdminReviewResponse, ReviewStatus } from '../types/review'
 import { useToast } from '../hooks/useToast'
 import { getErrorMessage } from '../utils/getErrorMessage'
+import { formatDate, reviewStatusLabel } from '../utils/localization'
 
 interface ReviewListState {
   key: string
@@ -56,7 +57,7 @@ export function AdminReviewsPage() {
     event.preventDefault()
     const trimmedId = productIdDraft.trim()
     if (trimmedId && (!/^\d+$/.test(trimmedId) || Number(trimmedId) < 1)) {
-      setFilterError('Product ID must be a positive whole number.')
+      setFilterError('Mã sản phẩm phải là số nguyên dương.')
       return
     }
     setFilterError(null)
@@ -75,7 +76,7 @@ export function AdminReviewsPage() {
 
     try {
       await updateAdminReviewStatusApi(review.id, nextStatus)
-      toast.success(`Review set to ${nextStatus.toLowerCase()}.`)
+      toast.success(`Đánh giá đã chuyển sang trạng thái ${reviewStatusLabel(nextStatus).toLowerCase()}.`)
       setReloadVersion((version) => version + 1)
     } catch (error) {
       toast.error(getErrorMessage(error))
@@ -88,33 +89,33 @@ export function AdminReviewsPage() {
     <section className="page-section admin-reviews-page">
       <header className="section-heading">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1>Review moderation</h1>
+          <p className="eyebrow">Quản trị</p>
+          <h1>Quản lý đánh giá</h1>
         </div>
       </header>
 
       <form className="review-filters" onSubmit={handleFilter}>
         <label>
-          Status
+          Trạng thái
           <select onChange={(event) => handleStatusFilter(event.target.value)} value={status}>
-            <option value="">All statuses</option>
-            <option value="VISIBLE">Visible</option>
-            <option value="HIDDEN">Hidden</option>
+            <option value="">Tất cả trạng thái</option>
+            <option value="VISIBLE">Đang hiển thị</option>
+            <option value="HIDDEN">Đã ẩn</option>
           </select>
         </label>
         <label>
-          Product ID
+          Mã sản phẩm
           <input
             inputMode="numeric"
             onChange={(event) => setProductIdDraft(event.target.value)}
             value={productIdDraft}
           />
         </label>
-        <button className="button button-secondary" type="submit">Apply filters</button>
+        <button className="button button-secondary" type="submit">Áp dụng bộ lọc</button>
       </form>
 
       {filterError && <p className="form-error" role="alert">{filterError}</p>}
-      {isLoading && <p className="loading-state" role="status">Loading reviews…</p>}
+      {isLoading && <p className="loading-state" role="status">Đang tải đánh giá...</p>}
       {pageError && (
         <div className="form-error" role="alert">
           {pageError}
@@ -123,12 +124,12 @@ export function AdminReviewsPage() {
             onClick={() => setReloadVersion((version) => version + 1)}
             type="button"
           >
-            Retry
+            Thử lại
           </button>
         </div>
       )}
       {!isLoading && !pageError && pageData?.content.length === 0 && (
-        <p className="empty-state">No reviews match these filters.</p>
+        <p className="empty-state">Không có đánh giá phù hợp với bộ lọc.</p>
       )}
       {!isLoading && !pageError && pageData && pageData.content.length > 0 && (
         <>
@@ -136,13 +137,13 @@ export function AdminReviewsPage() {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Product</th>
-                  <th>Customer</th>
-                  <th>Rating</th>
-                  <th>Comment</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                  <th>Action</th>
+                  <th>Sản phẩm</th>
+                  <th>Khách hàng</th>
+                  <th>Đánh giá</th>
+                  <th>Nhận xét</th>
+                  <th>Trạng thái</th>
+                  <th>Ngày tạo</th>
+                  <th>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -152,7 +153,7 @@ export function AdminReviewsPage() {
                       <Link className="text-link" to={`/products/${review.productId}`}>
                         {review.productName}
                       </Link>
-                      <span className="table-subtext">Product #{review.productId}</span>
+                      <span className="table-subtext">Mã sản phẩm #{review.productId}</span>
                     </td>
                     <td>
                       <strong>{review.customerName}</strong>
@@ -160,8 +161,8 @@ export function AdminReviewsPage() {
                     </td>
                     <td>{review.rating} / 5</td>
                     <td>{review.comment || '—'}</td>
-                    <td><span className={`status-badge status-${review.status.toLowerCase()}`}>{review.status}</span></td>
-                    <td>{new Date(review.createdAt).toLocaleDateString()}</td>
+                    <td><span className={`status-badge status-${review.status.toLowerCase()}`}>{reviewStatusLabel(review.status)}</span></td>
+                    <td>{formatDate(review.createdAt)}</td>
                     <td>
                       <button
                         className="text-button"
@@ -169,7 +170,7 @@ export function AdminReviewsPage() {
                         onClick={() => void handleStatusUpdate(review)}
                         type="button"
                       >
-                        {updatingId === review.id ? 'Updating…' : review.status === 'VISIBLE' ? 'Hide' : 'Show'}
+                        {updatingId === review.id ? 'Đang cập nhật...' : review.status === 'VISIBLE' ? 'Ẩn đánh giá' : 'Hiện đánh giá'}
                       </button>
                     </td>
                   </tr>
@@ -177,23 +178,23 @@ export function AdminReviewsPage() {
               </tbody>
             </table>
           </div>
-          <nav aria-label="Review pages" className="pagination">
+          <nav aria-label="Các trang đánh giá" className="pagination">
             <button
               className="button button-secondary"
               disabled={pageData.first}
               onClick={() => setPageNumber((current) => Math.max(0, current - 1))}
               type="button"
             >
-              Previous
+              Trước
             </button>
-            <span>Page {pageData.page + 1} of {Math.max(pageData.totalPages, 1)}</span>
+            <span>Trang {pageData.page + 1} / {Math.max(pageData.totalPages, 1)}</span>
             <button
               className="button button-secondary"
               disabled={pageData.last}
               onClick={() => setPageNumber((current) => current + 1)}
               type="button"
             >
-              Next
+              Sau
             </button>
           </nav>
         </>

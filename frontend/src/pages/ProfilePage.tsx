@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
 import type { UserResponse } from '../types/auth'
 import { getErrorMessage } from '../utils/getErrorMessage'
+import { roleLabel, userStatusLabel } from '../utils/localization'
 
 export function ProfilePage() {
   const { updateUserState } = useAuth()
@@ -62,7 +63,7 @@ export function ProfilePage() {
       setFullName(updated.fullName)
       setPhone(updated.phone ?? '')
       updateUserState(updated)
-      toast.success('Profile updated.')
+      toast.success('Cập nhật thông tin thành công.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     } finally {
@@ -73,7 +74,7 @@ export function ProfilePage() {
   async function handlePasswordSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (newPassword !== confirmPassword) {
-      toast.error('New passwords do not match.')
+      toast.error('Mật khẩu mới xác nhận không khớp.')
       return
     }
 
@@ -83,7 +84,7 @@ export function ProfilePage() {
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
-      toast.success('Password changed.')
+      toast.success('Đổi mật khẩu thành công.')
     } catch (error) {
       toast.error(getErrorMessage(error))
     } finally {
@@ -95,45 +96,45 @@ export function ProfilePage() {
     <main className="customer-page">
       <header className="customer-page-header">
         <div>
-          <p className="eyebrow">Account</p>
-          <h1>My profile</h1>
-          <p className="page-intro">Manage your personal details and password.</p>
+          <p className="eyebrow">Tài khoản</p>
+          <h1>Thông tin cá nhân</h1>
+          <p className="page-intro">Quản lý thông tin cá nhân và mật khẩu của bạn.</p>
         </div>
-        <Link className="button button-secondary" to="/addresses">Manage addresses</Link>
+        <Link className="button button-secondary" to="/addresses">Quản lý địa chỉ</Link>
       </header>
-      {isLoading && <LoadingState message="Loading your profile…" />}
+      {isLoading && <LoadingState message="Đang tải thông tin tài khoản..." />}
       {loadError && <ErrorState message={loadError} onRetry={handleProfileRetry} />}
       {!isLoading && !loadError && profile && (
         <div className="account-page-grid">
           <section className="customer-panel">
-            <h2>Personal information</h2>
+            <h2>Thông tin cá nhân</h2>
             <form className="auth-form account-form" onSubmit={handleProfileSubmit}>
-              <label htmlFor="profileEmail">Email</label>
+              <label htmlFor="profileEmail">Địa chỉ email</label>
               <input id="profileEmail" readOnly value={profile.email} />
               <div className="profile-meta">
-                <span>Role <strong>{profile.role}</strong></span>
-                <span>Status <strong>{profile.status}</strong></span>
+                <span>Vai trò <strong>{roleLabel(profile.role)}</strong></span>
+                <span>Trạng thái <strong>{userStatusLabel(profile.status)}</strong></span>
               </div>
-              <label htmlFor="profileFullName">Full name</label>
+              <label htmlFor="profileFullName">Họ và tên</label>
               <input autoComplete="name" id="profileFullName" onChange={(event) => setFullName(event.target.value)} required value={fullName} />
-              <label htmlFor="profilePhone">Phone</label>
+              <label htmlFor="profilePhone">Số điện thoại</label>
               <input autoComplete="tel" id="profilePhone" onChange={(event) => setPhone(event.target.value)} type="tel" value={phone} />
               <button className="button button-primary" disabled={isSavingProfile} type="submit">
-                {isSavingProfile ? 'Saving…' : 'Save profile'}
+                {isSavingProfile ? 'Đang lưu...' : 'Lưu thông tin'}
               </button>
             </form>
           </section>
           <section className="customer-panel">
-            <h2>Change password</h2>
+            <h2>Đổi mật khẩu</h2>
             <form className="auth-form account-form" onSubmit={handlePasswordSubmit}>
-              <label htmlFor="currentPassword">Current password</label>
+              <label htmlFor="currentPassword">Mật khẩu hiện tại</label>
               <input autoComplete="current-password" id="currentPassword" onChange={(event) => setCurrentPassword(event.target.value)} required type="password" value={currentPassword} />
-              <label htmlFor="profileNewPassword">New password</label>
+              <label htmlFor="profileNewPassword">Mật khẩu mới (ít nhất 8 ký tự)</label>
               <input autoComplete="new-password" id="profileNewPassword" minLength={8} onChange={(event) => setNewPassword(event.target.value)} required type="password" value={newPassword} />
-              <label htmlFor="profileConfirmPassword">Confirm new password</label>
+              <label htmlFor="profileConfirmPassword">Xác nhận mật khẩu mới</label>
               <input autoComplete="new-password" id="profileConfirmPassword" onChange={(event) => setConfirmPassword(event.target.value)} required type="password" value={confirmPassword} />
               <button className="button button-primary" disabled={isChangingPassword} type="submit">
-                {isChangingPassword ? 'Changing…' : 'Change password'}
+                {isChangingPassword ? 'Đang cập nhật...' : 'Đổi mật khẩu'}
               </button>
             </form>
           </section>

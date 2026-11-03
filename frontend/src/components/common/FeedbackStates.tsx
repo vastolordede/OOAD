@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-export function LoadingState({ message = 'Loading...' }: { message?: string }) {
+export function LoadingState({ message = 'Đang tải...' }: { message?: string }) {
   return (
     <p className="feedback-state loading-state" role="status">
       {message}
@@ -20,7 +20,7 @@ export function ErrorState({
       <p>{message}</p>
       {onRetry && (
         <button className="button button-secondary" onClick={onRetry} type="button">
-          Retry
+          Thử lại
         </button>
       )}
     </div>
