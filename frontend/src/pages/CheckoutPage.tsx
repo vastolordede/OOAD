@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { createAddressApi, listAddressesApi } from '../api/address.api'
 import { getCartApi } from '../api/cart.api'
+import { getPaymentModesApi, type PaymentModesResponse } from '../api/payment.api'
 import { previewCheckoutApi } from '../api/checkout.api'
 import { createOrderApi } from '../api/orders.api'
 import type {
@@ -49,11 +50,11 @@ export function CheckoutPage() {
     status: 'loading' | 'success' | 'error'
     data?: CheckoutPreviewResponse
   } | null>(null)
-  const [previewRetry, setPreviewRetry] = useState(0)
   const [voucherCode, setVoucherCode] = useState('')
   const [voucherDraft, setVoucherDraft] = useState('')
   const [note, setNote] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD')
+  const [paymentModes, setPaymentModes] = useState<PaymentModesResponse | null>(null)
   const [addressForm, setAddressForm] = useState<AddressRequest>(emptyAddress)
   const [showAddressForm, setShowAddressForm] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -62,8 +63,9 @@ export function CheckoutPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [createdOrder, setCreatedOrder] = useState<OrderResponse | null>(null)
   const submitLock = useRef(false)
+  const onlineAvailable = Boolean(paymentModes?.vnpayAvailable || paymentModes?.simulationEnabled)
   const previewKey =
-    selectedAddressId === null ? null : `${selectedAddressId}:${voucherCode}:${previewRetry}`
+    selectedAddressId === null ? null : `${selectedAddressId}:${voucherCode}`
   const preview =
     previewKey !== null &&
     previewState?.key === previewKey &&
@@ -82,9 +84,10 @@ export function CheckoutPage() {
       setLoadError(null)
 
       try {
-        const [loadedCart, loadedAddresses] = await Promise.all([
+        const [loadedCart, loadedAddresses, modes] = await Promise.all([
           getCartApi(),
           listAddressesApi(),
+          getPaymentModesApi(),
         ])
 
         if (!isCurrent) {
@@ -93,6 +96,7 @@ export function CheckoutPage() {
 
         setCart(loadedCart)
         setAddresses(loadedAddresses)
+        setPaymentModes(modes)
         const defaultAddress = loadedAddresses.find((address) => address.defaultAddress)
         setSelectedAddressId(defaultAddress?.id ?? loadedAddresses[0]?.id ?? null)
       } catch (error) {
@@ -118,7 +122,7 @@ export function CheckoutPage() {
     }
 
     let isCurrent = true
-    const requestKey = `${selectedAddressId}:${voucherCode}:${previewRetry}`
+    const requestKey = `${selectedAddressId}:${voucherCode}`
 
     previewCheckoutApi({
       addressId: selectedAddressId,
@@ -139,7 +143,7 @@ export function CheckoutPage() {
     return () => {
       isCurrent = false
     }
-  }, [selectedAddressId, toast, voucherCode, previewRetry])
+  }, [selectedAddressId, toast, voucherCode])
 
   async function handleCreateAddress(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -192,6 +196,10 @@ export function CheckoutPage() {
     }
     if (!selectedAddressId || !preview || !cart || cart.items.length === 0) {
       toast.error('Vui lòng chọn địa chỉ nhận hàng và chờ hệ thống tính đơn hàng.')
+      return
+    }
+    if (paymentMethod === 'ONLINE' && !onlineAvailable) {
+      toast.error('Phương thức thanh toán trực tuyến chưa được cấu hình.')
       return
     }
     if (cart.hasUnavailableItems) {
@@ -475,15 +483,6 @@ export function CheckoutPage() {
             <p className="form-error" role="alert">Chưa thể tính đơn hàng. Vui lòng kiểm tra địa chỉ nhận hàng hoặc mã giảm giá.</p>
           )}
 
-          {previewState?.key === previewKey && previewState.status === 'error' && (
-            <button
-              className="button button-secondary"
-              onClick={() => setPreviewRetry((value) => value + 1)}
-              type="button"
-            >
-              Thử tính lại đơn hàng
-            </button>
-          )}
           <fieldset className="payment-method-options">
             <legend>Phương thức thanh toán</legend>
             <label className="address-option">
@@ -501,13 +500,16 @@ export function CheckoutPage() {
             <label className="address-option">
               <input
                 checked={paymentMethod === 'ONLINE'}
+                disabled={!onlineAvailable}
                 name="paymentMethod"
                 onChange={() => setPaymentMethod('ONLINE')}
                 type="radio"
               />
               <span>
-                <strong>Thanh toán trực tuyến (mô phỏng)</strong>
-                <span>Không kết nối cổng thanh toán và không phát sinh giao dịch thật.</span>
+                <strong>Thanh toán trực tuyến</strong>
+                <span>{onlineAvailable
+                  ? 'Thanh toán qua phương thức đang bật trong hệ thống (VNPay hoặc demo).'
+                  : 'Chưa có cổng thanh toán trực tuyến được cấu hình.'}</span>
               </span>
             </label>
           </fieldset>

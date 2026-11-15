@@ -2,6 +2,7 @@ package com.ooad.cosmetics.service;
 
 import com.ooad.cosmetics.common.exception.BadRequestException;
 import com.ooad.cosmetics.common.exception.ResourceNotFoundException;
+import com.ooad.cosmetics.config.VnPayProperties;
 import com.ooad.cosmetics.dto.address.AddressResponse;
 import com.ooad.cosmetics.dto.checkout.CheckoutItemResponse;
 import com.ooad.cosmetics.dto.checkout.CheckoutPreviewRequest;
@@ -30,6 +31,7 @@ import com.ooad.cosmetics.repository.OrderItemRepository;
 import com.ooad.cosmetics.repository.OrderRepository;
 import com.ooad.cosmetics.repository.PaymentRepository;
 import com.ooad.cosmetics.repository.ProductImageRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +54,8 @@ public class CheckoutService {
     private final PaymentRepository paymentRepository;
     private final StockService stockService;
     private final CurrentUserService currentUserService;
+    private final VnPayProperties vnPayProperties;
+    private final boolean paymentSimulationEnabled;
 
     public CheckoutService(
             CartRepository cartRepository,
@@ -63,7 +67,9 @@ public class CheckoutService {
             OrderItemRepository orderItemRepository,
             PaymentRepository paymentRepository,
             StockService stockService,
-            CurrentUserService currentUserService
+            CurrentUserService currentUserService,
+            VnPayProperties vnPayProperties,
+            @Value("${app.payment.simulation-enabled:false}") boolean paymentSimulationEnabled
     ) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
@@ -75,6 +81,8 @@ public class CheckoutService {
         this.paymentRepository = paymentRepository;
         this.stockService = stockService;
         this.currentUserService = currentUserService;
+        this.vnPayProperties = vnPayProperties;
+        this.paymentSimulationEnabled = paymentSimulationEnabled;
     }
 
     /** O06: xem trước đơn hàng, không ghi gì vào database. */
@@ -106,6 +114,12 @@ public class CheckoutService {
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
         User user = currentUserService.requireCurrentUser();
+        if (request.paymentMethod() == PaymentMethod.ONLINE
+                && !paymentSimulationEnabled
+                && (vnPayProperties.getTmnCode().isBlank()
+                    || vnPayProperties.getHashSecret().isBlank())) {
+            throw new BadRequestException("Online payment is not configured");
+        }
 
         // Tính lại toàn bộ ở backend (O09 - O12), khóa giỏ hàng chống bấm đặt hai lần.
         Quote quote = prepare(user, request.addressId(), request.voucherCode(), true);

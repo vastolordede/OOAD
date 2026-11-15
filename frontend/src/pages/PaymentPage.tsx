@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { confirmPaymentApi, failPaymentApi, getPaymentApi } from '../api/payment.api'
+import {
+  confirmPaymentApi,
+  createVnPayPaymentUrlApi,
+  failPaymentApi,
+  getPaymentApi,
+  getPaymentModesApi,
+  type PaymentModesResponse,
+} from '../api/payment.api'
 import { getOrderDetailApi } from '../api/orders.api'
 import type { OrderResponse, PaymentResponse } from '../types/commerce'
 import { useToast } from '../hooks/useToast'
@@ -11,6 +18,7 @@ import { orderStatusLabel, paymentMethodLabel, paymentStatusLabel } from '../uti
 interface PaymentState {
   payment: PaymentResponse
   order: OrderResponse
+  modes: PaymentModesResponse
 }
 
 type PaymentLoadState =
@@ -37,10 +45,10 @@ export function PaymentPage() {
       return
     }
     let isCurrent = true
-    Promise.all([getPaymentApi(id), getOrderDetailApi(id)])
-      .then(([payment, order]) => {
+    Promise.all([getPaymentApi(id), getOrderDetailApi(id), getPaymentModesApi()])
+      .then(([payment, order, modes]) => {
         if (isCurrent) {
-          setLoadState({ key: requestKey, status: 'success', result: { payment, order } })
+          setLoadState({ key: requestKey, status: 'success', result: { payment, order, modes } })
         }
       })
       .catch((requestError: unknown) => {
@@ -55,7 +63,9 @@ export function PaymentPage() {
   }, [id, isValidId, reloadVersion, requestKey])
 
   async function processPayment(action: 'confirm' | 'fail') {
-    if (!result || result.order.status !== 'PENDING' || result.payment.status === 'PAID') {
+    if (!result || result.order.status !== 'PENDING' || result.payment.status === 'PAID'
+        || !result.modes.simulationEnabled
+        || !result.payment.transactionRef?.startsWith('MOCK-')) {
       return
     }
     setIsWorking(true)
@@ -72,11 +82,26 @@ export function PaymentPage() {
     }
   }
 
+  async function goToVnPay() {
+    if (!result || !result.modes.vnpayAvailable || isWorking
+        || result.payment.status === 'PAID' || result.order.status !== 'PENDING') {
+      return
+    }
+    setIsWorking(true)
+    try {
+      const paymentUrl = await createVnPayPaymentUrlApi(id)
+      window.location.assign(paymentUrl)
+    } catch (requestError) {
+      toast.error(getErrorMessage(requestError))
+      setIsWorking(false)
+    }
+  }
+
   return (
     <main className="customer-page payment-page">
       <Link className="text-link" to={`/my-orders/${id}`}>← Quay lại chi tiết đơn hàng</Link>
       <section className="customer-panel payment-panel">
-        <p className="eyebrow">Thanh toán trực tuyến · mô phỏng</p>
+        <p className="eyebrow">Thanh toán trực tuyến</p>
         <h1>Thanh toán đơn hàng #{isValidId ? id : '—'}</h1>
         {!isValidId && <p className="form-error" role="alert">Mã đơn hàng không hợp lệ.</p>}
         {isLoading && <p className="loading-state" role="status">Đang tải thông tin thanh toán...</p>}
@@ -94,9 +119,11 @@ export function PaymentPage() {
         )}
         {!isLoading && !error && result && (
           <>
-            <p className="payment-simulation-note">
-              Đây là luồng thanh toán mô phỏng, không thu tiền và không kết nối với cổng thanh toán.
-            </p>
+            {result.modes.simulationEnabled && (
+              <p className="payment-simulation-note">
+                Chế độ demo đang bật: nút mô phỏng không thu tiền thật.
+              </p>
+            )}
             <dl className="payment-details">
               <div><dt>Số tiền</dt><dd>{formatCurrency(result.payment.amount)}</dd></div>
               <div><dt>Phương thức</dt><dd>{paymentMethodLabel(result.payment.method)}</dd></div>
@@ -106,22 +133,41 @@ export function PaymentPage() {
             </dl>
             {result.order.status === 'PENDING' && result.payment.status !== 'PAID' ? (
               <div className="customer-review-actions">
-                <button
-                  className="button button-primary"
-                  disabled={isWorking}
-                  onClick={() => void processPayment('confirm')}
-                  type="button"
-                >
-                  {isWorking ? 'Đang xử lý...' : 'Mô phỏng thanh toán thành công'}
-                </button>
-                <button
-                  className="button button-secondary"
-                  disabled={isWorking}
-                  onClick={() => void processPayment('fail')}
-                  type="button"
-                >
-                  Mô phỏng thanh toán thất bại
-                </button>
+                {result.modes.vnpayAvailable && (
+                  <button
+                    className="button button-primary"
+                    disabled={isWorking}
+                    onClick={() => void goToVnPay()}
+                    type="button"
+                  >
+                    {isWorking ? 'Đang xử lý...' : 'Thanh toán qua VNPay'}
+                  </button>
+                )}
+                {result.modes.simulationEnabled && result.payment.transactionRef?.startsWith('MOCK-') && (
+                  <>
+                    <button
+                      className="button button-secondary"
+                      disabled={isWorking}
+                      onClick={() => void processPayment('confirm')}
+                      type="button"
+                    >
+                      Mô phỏng thanh toán thành công
+                    </button>
+                    <button
+                      className="button button-secondary"
+                      disabled={isWorking}
+                      onClick={() => void processPayment('fail')}
+                      type="button"
+                    >
+                      Mô phỏng thanh toán thất bại
+                    </button>
+                  </>
+                )}
+                {!result.modes.vnpayAvailable && !result.modes.simulationEnabled && (
+                  <p className="form-error" role="status">
+                    Chưa cấu hình phương thức thanh toán online. Vui lòng liên hệ quản trị viên.
+                  </p>
+                )}
               </div>
             ) : (
               <p className="muted-text">

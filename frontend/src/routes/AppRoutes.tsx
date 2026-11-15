@@ -24,6 +24,7 @@ import { MyOrdersPage } from '../pages/MyOrdersPage'
 import { MyReviewsPage } from '../pages/MyReviewsPage'
 import { OrderDetailPage } from '../pages/OrderDetailPage'
 import { PaymentPage } from '../pages/PaymentPage'
+import { VnPayReturnPage } from '../pages/VnPayReturnPage'
 import { ProfilePage } from '../pages/ProfilePage'
 import { ProductDetailPage } from '../pages/ProductDetailPage'
 import { ProductCatalogPage } from '../pages/ProductCatalogPage'
@@ -41,6 +42,7 @@ export function AppRoutes() {
         <Route element={<RegisterPage />} path="/register" />
         <Route element={<ForgotPasswordPage />} path="/forgot-password" />
         <Route element={<ResetPasswordPage />} path="/reset-password" />
+        <Route element={<VnPayReturnPage />} path="/payment/vnpay-return" />
         <Route element={<AccessDeniedPage />} path="/access-denied" />
         <Route element={<ProductCatalogPage />} path="/products" />
         <Route element={<ProductDetailPage />} path="/products/:productId" />

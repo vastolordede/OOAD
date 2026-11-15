@@ -3,6 +3,7 @@ package com.ooad.cosmetics.service;
 import com.ooad.cosmetics.common.exception.BadRequestException;
 import com.ooad.cosmetics.common.exception.ResourceNotFoundException;
 import com.ooad.cosmetics.common.response.PageResponse;
+import com.ooad.cosmetics.config.VnPayProperties;
 import com.ooad.cosmetics.dto.order.OrderResponse;
 import com.ooad.cosmetics.dto.order.OrderSummaryResponse;
 import com.ooad.cosmetics.entity.Order;
@@ -66,7 +67,8 @@ class OrderServiceTest {
                 paymentRepository,
                 stockService,
                 voucherService,
-                currentUserService
+                currentUserService,
+                new VnPayProperties()
         );
 
         user = new User("customer@example.com", "hash", "Customer", null);
@@ -149,15 +151,33 @@ class OrderServiceTest {
     }
 
     @Test
-    void cancelMineRefundsAPaidPayment() {
+    void cancelMineBlocksPaidOnlinePaymentWithoutGatewayRefund() {
         Order order = order(10L, OrderStatus.CONFIRMED);
         when(orderRepository.lockByIdAndUserId(10L, 1L)).thenReturn(Optional.of(order));
         Payment payment = payment(order, PaymentMethod.ONLINE, PaymentStatus.PAID);
         when(paymentRepository.findByOrderId(10L)).thenReturn(Optional.of(payment));
 
-        service.cancelMine(10L);
+        assertThatThrownBy(() -> service.cancelMine(10L))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Paid online orders require a real gateway refund before cancellation");
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        verifyNoInteractions(stockService, voucherService);
+    }
 
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REFUNDED);
+    @Test
+    void cancelMineRejectsInFlightVnPayAttempt() {
+        Order order = order(10L, OrderStatus.PENDING);
+        when(orderRepository.lockByIdAndUserId(10L, 1L)).thenReturn(Optional.of(order));
+        Payment payment = payment(order, PaymentMethod.ONLINE, PaymentStatus.PENDING);
+        payment.setTransactionRef("10-active-vnpay-attempt");
+        when(paymentRepository.findByOrderId(10L)).thenReturn(Optional.of(payment));
+
+        assertThatThrownBy(() -> service.cancelMine(10L))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Wait for the active VNPay attempt to finish before cancelling");
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING);
+        verifyNoInteractions(stockService, voucherService);
     }
 
     @ParameterizedTest

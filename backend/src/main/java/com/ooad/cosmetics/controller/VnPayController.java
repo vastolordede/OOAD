@@ -1,10 +1,12 @@
 package com.ooad.cosmetics.controller;
 
 import com.ooad.cosmetics.common.response.ApiResponse;
+import com.ooad.cosmetics.config.VnPayProperties;
 import com.ooad.cosmetics.service.PaymentService;
 import com.ooad.cosmetics.service.VnPayService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Value;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,25 +21,41 @@ import java.util.Map;
 public class VnPayController {
 
     public record VnPayUrlResponse(String paymentUrl) {}
+    public record PaymentModesResponse(boolean vnpayAvailable, boolean simulationEnabled) {}
 
     private final VnPayService vnPayService;
     private final PaymentService paymentService;
+    private final VnPayProperties vnpayProperties;
+    private final boolean simulationEnabled;
 
-    public VnPayController(VnPayService vnPayService, PaymentService paymentService) {
+    public VnPayController(
+            VnPayService vnPayService,
+            PaymentService paymentService,
+            VnPayProperties vnpayProperties,
+            @Value("${app.payment.simulation-enabled:false}") boolean simulationEnabled
+    ) {
         this.vnPayService = vnPayService;
         this.paymentService = paymentService;
+        this.vnpayProperties = vnpayProperties;
+        this.simulationEnabled = simulationEnabled;
+    }
+
+    /** Public capability discovery; never exposes VNPay credentials. */
+    @GetMapping("/api/public/payment/modes")
+    public ApiResponse<PaymentModesResponse> paymentModes() {
+        return ApiResponse.success(new PaymentModesResponse(
+                !vnpayProperties.getTmnCode().isBlank() && !vnpayProperties.getHashSecret().isBlank(),
+                simulationEnabled
+        ));
     }
 
     /** Customer đã đăng nhập: lấy link thanh toán VNPay cho đơn của mình. */
     @PostMapping("/api/orders/{orderId}/payment/vnpay")
     @Operation(summary = "Create a VNPay payment URL for my online order")
     public ApiResponse<VnPayUrlResponse> createPaymentUrl(@PathVariable Long orderId, HttpServletRequest request) {
-        // ADAPT: gọi method có sẵn của PaymentService dùng để kiểm tra đơn thuộc user hiện tại
-        // (cùng method mà GET /api/orders/{orderId}/payment đang gọi). Nó phải ném lỗi nếu đơn của người khác.
         paymentService.get(orderId);
 
         String url = vnPayService.createPaymentUrl(orderId, clientIp(request));
-        // ADAPT: đổi theo tên factory thật của ApiResponse (success/ok/of...)
         return ApiResponse.success(new VnPayUrlResponse(url));
     }
 

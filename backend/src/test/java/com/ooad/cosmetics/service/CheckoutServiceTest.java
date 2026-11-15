@@ -2,6 +2,7 @@ package com.ooad.cosmetics.service;
 
 import com.ooad.cosmetics.common.exception.BadRequestException;
 import com.ooad.cosmetics.common.exception.ResourceNotFoundException;
+import com.ooad.cosmetics.config.VnPayProperties;
 import com.ooad.cosmetics.dto.checkout.CheckoutPreviewRequest;
 import com.ooad.cosmetics.dto.checkout.CheckoutPreviewResponse;
 import com.ooad.cosmetics.dto.order.CreateOrderRequest;
@@ -89,7 +90,9 @@ class CheckoutServiceTest {
                 orderItemRepository,
                 paymentRepository,
                 stockService,
-                currentUserService
+                currentUserService,
+                new VnPayProperties(),
+                true  // tests include mock online payment
         );
 
         user = new User("customer@example.com", "hash", "Customer", null);

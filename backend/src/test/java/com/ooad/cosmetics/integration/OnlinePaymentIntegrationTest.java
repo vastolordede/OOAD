@@ -114,17 +114,20 @@ class OnlinePaymentIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void cancellingAPaidOnlineOrderRefundsThePaymentAndRestoresStock() {
+    void cancellingAPaidOnlineOrderWithoutGatewayRefundIsRejectedAndPreservesData() {
         long variantId = createVariant("100000.00", 5);
         OrderResponse order = placeOrder("buyer@example.com", variantId, 2, PaymentMethod.ONLINE);
         paymentService.confirm(order.id());
         assertThat(stockOf(variantId)).isEqualTo(3);
 
-        orderService.cancelMine(order.id());
+        // Chỉ thay đổi trạng thái đơn sau khi cổng thanh toán xác nhận hoàn tiền thật.
+        assertThatThrownBy(() -> orderService.cancelMine(order.id()))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Paid online orders require a real gateway refund before cancellation");
 
-        assertThat(orderStatus(order.id())).isEqualTo("CANCELLED");
-        assertThat(paymentStatus()).isEqualTo("REFUNDED");
-        assertThat(stockOf(variantId)).isEqualTo(5);
+        assertThat(orderStatus(order.id())).isEqualTo("PENDING");
+        assertThat(paymentStatus()).isEqualTo("PAID");
+        assertThat(stockOf(variantId)).isEqualTo(3);
     }
 
     @Test

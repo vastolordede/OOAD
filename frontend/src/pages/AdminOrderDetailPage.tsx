@@ -53,10 +53,8 @@ export function AdminOrderDetailPage() {
 
   async function updateStatus(nextStatus: AdminOrderResponse['order']['status']) {
     if (!data || !nextStatuses[data.order.status].includes(nextStatus)) return
-    if (nextStatus === 'CONFIRMED' && data.order.payment?.method === 'ONLINE' && data.order.payment?.status !== 'PAID') {
-      toast.error('Đơn ONLINE phải thanh toán thành công trước khi xác nhận.')
-      return
-    }
+    if (nextStatus === 'CANCELLED' && data.order.payment?.method === 'ONLINE'
+        && data.order.payment.status === 'PAID') return
 
     if (nextStatus === 'CANCELLED' && !window.confirm('Bạn có chắc muốn hủy đơn hàng? Tồn kho và lượt sử dụng mã giảm giá sẽ được hoàn lại.')) {
       return
@@ -109,10 +107,14 @@ export function AdminOrderDetailPage() {
                 <p className="muted-text">Đặt lúc {formatDateTime(data.order.createdAt)}</p>
               </div>
               <div className="admin-order-status-actions">
-                {nextStatuses[data.order.status].map((nextStatus) => (
+                {nextStatuses[data.order.status]
+                  .filter((nextStatus) => nextStatus !== 'CANCELLED'
+                    || data.order.payment?.method !== 'ONLINE'
+                    || data.order.payment.status !== 'PAID')
+                  .map((nextStatus) => (
                   <button
                     className={nextStatus === 'CANCELLED' ? 'button button-secondary text-button-danger' : 'button button-primary'}
-                    disabled={isUpdating || (nextStatus === 'CONFIRMED' && data.order.payment?.method === 'ONLINE' && data.order.payment?.status !== 'PAID')}
+                    disabled={isUpdating}
                     key={nextStatus}
                     onClick={() => void updateStatus(nextStatus)}
                     type="button"
@@ -122,9 +124,6 @@ export function AdminOrderDetailPage() {
                 ))}
               </div>
             </div>
-            {data.order.status === 'PENDING' && data.order.payment?.method === 'ONLINE' && data.order.payment?.status !== 'PAID' && (
-              <p className="muted-text">Đơn ONLINE chưa được thanh toán: không thể xác nhận trước khi trạng thái thanh toán là PAID.</p>
-            )}
             <dl className="payment-details">
               <div><dt>Khách hàng</dt><dd>{data.customerName}</dd></div>
               <div><dt>Email</dt><dd>{data.customerEmail}</dd></div>

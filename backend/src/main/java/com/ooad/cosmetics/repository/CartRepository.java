@@ -2,6 +2,7 @@ package com.ooad.cosmetics.repository;
 
 import com.ooad.cosmetics.entity.Cart;
 import com.ooad.cosmetics.entity.CartStatus;
+import com.ooad.cosmetics.entity.User;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -13,6 +14,11 @@ import java.util.Optional;
 public interface CartRepository extends JpaRepository<Cart, Long> {
 
     Optional<Cart> findByUserIdAndStatus(Long userId, CartStatus status);
+
+    /** Serialize concurrent requests creating the first active cart for one customer. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT u FROM User u WHERE u.id = :userId")
+    Optional<User> lockOwnerById(@Param("userId") Long userId);
 
     /**
      * Khóa dòng giỏ hàng khi tạo đơn: nếu khách bấm "Đặt hàng" hai lần liên tiếp,

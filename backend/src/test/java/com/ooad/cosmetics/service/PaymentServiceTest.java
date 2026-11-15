@@ -110,6 +110,17 @@ class PaymentServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
+    @Test
+    void simulatedPaymentCannotMarkVnPayTransactionAsPaid() {
+        Payment payment = stub(OrderStatus.PENDING, PaymentMethod.ONLINE, PaymentStatus.PENDING);
+        payment.setTransactionRef("10-vnpay-ref");
+
+        assertThatThrownBy(() -> service.confirm(10L))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("This payment must be confirmed by its payment provider");
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PENDING);
+    }
+
     // ---------------- fail ----------------
 
     @Test

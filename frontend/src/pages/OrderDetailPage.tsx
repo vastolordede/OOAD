@@ -106,7 +106,8 @@ export function OrderDetailPage() {
   }
 
   async function handleCancel() {
-    if (!order || !canCancelOrder(order.status)) {
+    if (!order || !canCancelOrder(order.status)
+        || (order.payment?.method === 'ONLINE' && order.payment.status === 'PAID')) {
       return
     }
     if (!window.confirm(`Bạn có chắc muốn hủy đơn hàng #${order.id}?`)) {
@@ -250,7 +251,8 @@ export function OrderDetailPage() {
           )}
           {order.voucherCode && <div><span>Mã giảm giá</span><span>{order.voucherCode}</span></div>}
           {order.note && <p className="order-note">Ghi chú: {order.note}</p>}
-          {canCancelOrder(order.status) && (
+          {canCancelOrder(order.status)
+            && !(order.payment?.method === 'ONLINE' && order.payment.status === 'PAID') && (
             <button
               className="button button-danger button-full"
               disabled={isCancelling}
