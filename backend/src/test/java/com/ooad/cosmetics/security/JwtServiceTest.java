@@ -26,4 +26,20 @@ class JwtServiceTest {
                 .isEqualTo("user@example.com");
         assertThat(jwtService.isValid(token, userDetails)).isTrue();
     }
+
+    @Test
+    void changingPasswordInvalidatesPreviouslyIssuedJwt() {
+        JwtService jwtService = new JwtService(
+                "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", 60_000
+        );
+        UserDetails before = User.withUsername("user@example.com")
+                .password("bcrypt-hash-before").roles("CUSTOMER").build();
+        UserDetails after = User.withUsername("user@example.com")
+                .password("bcrypt-hash-after").roles("CUSTOMER").build();
+
+        String token = jwtService.generateToken(before);
+
+        assertThat(jwtService.isValid(token, before)).isTrue();
+        assertThat(jwtService.isValid(token, after)).isFalse();
+    }
 }

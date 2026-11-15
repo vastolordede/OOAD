@@ -51,8 +51,19 @@ function loadStoredUser(): UserResponse | null {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserResponse | null>(loadStoredUser)
   const [accessToken, setAccessToken] = useState<string | null>(() =>
-    localStorage.getItem('accessToken'),
+    localStorage.getItem('authUser') ? localStorage.getItem('accessToken') : null,
   )
+
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('authUser')
+      setAccessToken(null)
+      setUser(null)
+    }
+    window.addEventListener('auth-expired', handleAuthExpired)
+    return () => window.removeEventListener('auth-expired', handleAuthExpired)
+  }, [])
 
   const login = useCallback(async (payload: LoginRequest): Promise<UserRole> => {
     const response = await loginApi(payload)
@@ -78,22 +89,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(null)
     setUser(null)
   }, [])
-
-  useEffect(() => {
-    const handleExpired = () => logout()
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key === null || event.key === 'accessToken' || event.key === 'authUser') {
-        setUser(loadStoredUser())
-        setAccessToken(localStorage.getItem('accessToken'))
-      }
-    }
-    window.addEventListener('ooad:auth-expired', handleExpired)
-    window.addEventListener('storage', handleStorage)
-    return () => {
-      window.removeEventListener('ooad:auth-expired', handleExpired)
-      window.removeEventListener('storage', handleStorage)
-    }
-  }, [logout])
 
   const updateUserState = useCallback((updatedUser: UserResponse) => {
     localStorage.setItem('authUser', JSON.stringify(updatedUser))

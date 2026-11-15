@@ -9,6 +9,7 @@ import com.ooad.cosmetics.dto.user.UserResponse;
 import com.ooad.cosmetics.entity.User;
 import com.ooad.cosmetics.entity.UserStatus;
 import com.ooad.cosmetics.repository.UserRepository;
+import com.ooad.cosmetics.repository.PasswordResetTokenRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -22,15 +23,18 @@ public class UserService {
     private final UserRepository userRepository;
     private final CurrentUserService currentUserService;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordResetTokenRepository resetTokenRepository;
 
     public UserService(
             UserRepository userRepository,
             CurrentUserService currentUserService,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            PasswordResetTokenRepository resetTokenRepository
     ) {
         this.userRepository = userRepository;
         this.currentUserService = currentUserService;
         this.passwordEncoder = passwordEncoder;
+        this.resetTokenRepository = resetTokenRepository;
     }
 
     @Transactional(readOnly = true)
@@ -67,6 +71,8 @@ public class UserService {
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        // A password change also invalidates outstanding reset links.
+        resetTokenRepository.deleteByUserId(user.getId());
     }
 
     @Transactional(readOnly = true)

@@ -82,6 +82,10 @@ public class PaymentService {
         if (payment.getMethod() != PaymentMethod.ONLINE) {
             throw new BadRequestException("This order is not paid online");
         }
+        if (payment.getTransactionRef() == null
+                || !payment.getTransactionRef().startsWith("MOCK-")) {
+            throw new BadRequestException("This payment must be confirmed by its payment provider");
+        }
         if (payment.getStatus() == PaymentStatus.PAID) {
             throw new BadRequestException("Order is already paid");
         }

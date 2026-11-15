@@ -38,7 +38,8 @@ During local development, Vite forwards `/api` requests to `http://localhost:808
 | `/checkout` | CUSTOMER | Select/create shipping address, preview totals, apply/remove voucher, and create COD order |
 | `/my-orders` | CUSTOMER | Filter and paginate the current user's orders |
 | `/my-orders/:orderId` | CUSTOMER | Order detail, permitted cancellation, and delivered-order review form |
-| `/my-orders/:orderId/payment` | CUSTOMER | Simulated payment status and success/failure actions for ONLINE orders |
+| `/my-orders/:orderId/payment` | CUSTOMER | Payment status and available online gateways (mock buttons only in demo mode) |
+| `/payment/vnpay-return` | Public | Validate the signed result after returning from VNPay |
 | `/my-reviews` | CUSTOMER | Edit or delete the current user's reviews |
 | `/wishlist` | CUSTOMER | View and remove saved products |
 | `/admin/dashboard` | ADMIN | Summary cards, order status counts, and low-stock list |
@@ -49,7 +50,7 @@ During local development, Vite forwards `/api` requests to `http://localhost:808
 | `/admin/products/new` | ADMIN | Create a product |
 | `/admin/products/:productId/edit` | ADMIN | Edit product, variants, images, and stock |
 | `/admin/inventory` | ADMIN | Review low-stock variants and update stock |
-| `/admin/orders` | ADMIN | Existing placeholder; the backend Admin Order API is not yet wired into this frontend screen |
+| `/admin/orders` | ADMIN | Search, filter, and update order status; see the order detail page for payment status |
 | `/admin/vouchers` | ADMIN | Voucher list, filters, create/edit, and activation status |
 | `/admin/reviews` | ADMIN | Review moderation |
 
@@ -60,10 +61,10 @@ The reusable layouts are defined in `src/components/common/MainLayout.tsx` and `
 - All responses use the Spring Boot `ApiResponse<T>` envelope; paginated endpoints use `PageResponse<T>`.
 - The Axios request interceptor reads `accessToken` and sends `Authorization: Bearer ...`.
 - Checkout totals and voucher validity come from `POST /api/checkout/preview`; the frontend does not calculate replacement totals.
-- Checkout supports COD and the backend's explicitly simulated `ONLINE` method; the latter does not connect to a real provider or charge money.
-- Customer cancellation is shown only for `PENDING` and `CONFIRMED`, matching `OrderStatus.canTransitionTo`.
+- Checkout supports COD and `ONLINE` only when an online payment mode is configured. Mock payment confirmation is enabled only in the demo/test environment; VNPay sandbox requires valid provider configuration. The `return` route verifies callback parameters with the backend.
+- Customer cancellation is shown only for `PENDING` and `CONFIRMED` orders without a confirmed online payment; live VNPay attempts must finish before cancellation.
 - Review creation is offered only for `DELIVERED` orders and remains subject to backend rating and duplicate-item validation.
-- Admin APIs are protected by the backend's `ADMIN` role. Image file upload requires the backend Cloudinary feature to be enabled. The backend Admin Order API exists, but its frontend screen remains a placeholder.
+- Admin APIs are protected by the backend's `ADMIN` role. Image file upload requires the backend Cloudinary feature to be enabled. The Admin Order API is connected to its list and detail screens.
 
 ## Design and test references
 

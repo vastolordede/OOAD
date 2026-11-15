@@ -45,8 +45,9 @@ public class CloudinaryImageStorageService {
     ) {
         validate(file);
 
+        Map<?, ?> result;
         try {
-            Map<?, ?> result = cloudinary.uploader().upload(
+            result = cloudinary.uploader().upload(
                     file.getBytes(),
                     ObjectUtils.asMap(
                             "folder", folder + "/products/" + productId,
@@ -54,25 +55,25 @@ public class CloudinaryImageStorageService {
                     )
             );
 
-            String secureUrl = String.valueOf(result.get("secure_url"));
-            String publicId = String.valueOf(result.get("public_id"));
-
-            ProductImageResponse image = productService.addImage(
-                    productId,
-                    new ProductImageRequest(secureUrl, sortOrder)
-            );
-
-            return new CloudImageUploadResponse(
-                    secureUrl,
-                    publicId,
-                    image
-            );
         } catch (IOException | RuntimeException ex) {
-            throw new ExternalServiceException(
-                    "Cloud image upload failed",
-                    ex
-            );
+            throw new ExternalServiceException("Cloud image upload failed", ex);
         }
+
+        if (result == null) {
+            throw new ExternalServiceException("Cloud image provider returned an invalid response",
+                    new IllegalStateException("Null provider response"));
+        }
+        Object rawSecureUrl = result.get("secure_url");
+        Object rawPublicId = result.get("public_id");
+        if (!(rawSecureUrl instanceof String secureUrl)
+                || !secureUrl.startsWith("https://")
+                || !(rawPublicId instanceof String publicId) || publicId.isBlank()) {
+            throw new ExternalServiceException("Cloud image provider returned an invalid response",
+                    new IllegalStateException("Missing secure_url or public_id"));
+        }
+        ProductImageResponse image = productService.addImage(
+                productId, new ProductImageRequest(secureUrl, sortOrder));
+        return new CloudImageUploadResponse(secureUrl, publicId, image);
     }
 
     private void validate(MultipartFile file) {

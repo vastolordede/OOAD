@@ -37,6 +37,7 @@ public class AddressService {
     @Transactional
     public AddressResponse create(AddressRequest request) {
         User user = currentUserService.requireCurrentUser();
+        addressRepository.lockOwnerById(user.getId());
 
         Address address = new Address();
         address.setUser(user);
@@ -57,6 +58,7 @@ public class AddressService {
     @Transactional
     public AddressResponse update(Long addressId, AddressRequest request) {
         User user = currentUserService.requireCurrentUser();
+        addressRepository.lockOwnerById(user.getId());
         Address address = requireOwned(addressId, user.getId());
 
         apply(address, request);
@@ -74,6 +76,7 @@ public class AddressService {
     @Transactional
     public void delete(Long addressId) {
         User user = currentUserService.requireCurrentUser();
+        addressRepository.lockOwnerById(user.getId());
         Address address = requireOwned(addressId, user.getId());
         boolean wasDefault = address.isDefaultAddress();
 
@@ -94,6 +97,7 @@ public class AddressService {
     @Transactional
     public AddressResponse setDefault(Long addressId) {
         User user = currentUserService.requireCurrentUser();
+        addressRepository.lockOwnerById(user.getId());
         Address address = requireOwned(addressId, user.getId());
 
         clearDefault(user.getId());

@@ -82,6 +82,7 @@ public class WishlistService {
     @Transactional
     public WishlistItemResponse add(Long productId) {
         User user = currentUserService.requireCurrentUser();
+        wishlistRepository.lockOwnerById(user.getId());
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", productId));
@@ -106,6 +107,7 @@ public class WishlistService {
     @Transactional
     public void remove(Long productId) {
         User user = currentUserService.requireCurrentUser();
+        wishlistRepository.lockOwnerById(user.getId());
 
         Wishlist wishlist = wishlistRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("WishlistItem", productId));

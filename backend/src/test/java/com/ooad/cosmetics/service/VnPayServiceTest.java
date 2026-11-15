@@ -6,6 +6,7 @@ import com.ooad.cosmetics.entity.OrderStatus;
 import com.ooad.cosmetics.entity.Payment;
 import com.ooad.cosmetics.entity.PaymentMethod;
 import com.ooad.cosmetics.entity.PaymentStatus;
+import com.ooad.cosmetics.repository.OrderRepository;
 import com.ooad.cosmetics.repository.PaymentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 
@@ -30,6 +32,7 @@ import static org.mockito.Mockito.lenient;
 class VnPayServiceTest {
 
     @Mock PaymentRepository paymentRepository;
+    @Mock OrderRepository orderRepository;
 
     private VnPayService service;
     private Payment payment;
@@ -39,7 +42,7 @@ class VnPayServiceTest {
         VnPayProperties props = new VnPayProperties();
         props.setTmnCode("TESTCODE");
         props.setHashSecret("TESTSECRET");
-        service = new VnPayService(props, paymentRepository);
+        service = new VnPayService(props, paymentRepository, orderRepository);
 
         Order order = new Order();
         ReflectionTestUtils.setField(order, "id", 7L);
@@ -51,6 +54,7 @@ class VnPayServiceTest {
         payment.setStatus(PaymentStatus.PENDING);
         payment.setAmount(new BigDecimal("530000.00"));
 
+        lenient().when(orderRepository.lockById(7L)).thenReturn(Optional.of(order));
         lenient().when(paymentRepository.findByOrderId(7L)).thenReturn(Optional.of(payment));
         lenient().when(paymentRepository.save(any(Payment.class))).thenAnswer(i -> i.getArgument(0));
     }
@@ -71,6 +75,27 @@ class VnPayServiceTest {
         assertThat(q.get("vnp_Amount")).isEqualTo("53000000");
         assertThat(q.get("vnp_TxnRef")).startsWith("7-");
         assertThat(service.verifySignature(q, q.get("vnp_SecureHash"))).isTrue();
+    }
+
+    @Test
+    void callbackWithMissingMerchantSecretFailsClosed() {
+        VnPayProperties noSecret = new VnPayProperties();
+        noSecret.setTmnCode("TESTCODE");
+        VnPayService unsafeConfig = new VnPayService(noSecret, paymentRepository, orderRepository);
+
+        assertThat(unsafeConfig.handleCallback(Map.of()).rspCode()).isEqualTo("97");
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PENDING);
+    }
+
+    @Test
+    void pendingAttemptCannotBeOverwrittenByRepeatedPaymentClick() {
+        service.createPaymentUrl(7L, "127.0.0.1");
+        String firstReference = payment.getTransactionRef();
+
+        assertThatThrownBy(() -> service.createPaymentUrl(7L, "127.0.0.1"))
+                .isInstanceOf(com.ooad.cosmetics.common.exception.BadRequestException.class)
+                .hasMessage("A VNPay attempt is pending; check its result before retrying");
+        assertThat(payment.getTransactionRef()).isEqualTo(firstReference);
     }
 
     @Test
@@ -109,6 +134,55 @@ class VnPayServiceTest {
     }
 
     @Test
+    void signedPaymentLinkCannotBeReplayedAsAnIpnCallback() {
+        Map<String, String> paymentLink = queryOf(service.createPaymentUrl(7L, "127.0.0.1"));
+
+        assertThat(service.handleCallback(paymentLink).rspCode()).isEqualTo("97");
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PENDING);
+    }
+
+    @Test
+    void callbackWithUnicodeTextCanBeVerifiedWithUtf8Encoding() {
+        Map<String, String> q = queryOf(service.createPaymentUrl(7L, "127.0.0.1"));
+        Map<String, String> cb = signedCallback(q, "00", "00");
+        cb.put("vnp_OrderInfo", "Thanh toán mỹ phẩm");
+        cb.put("vnp_SecureHash", sign(cb));
+
+        assertThat(service.handleCallback(cb).paid()).isTrue();
+    }
+
+    @Test
+    void callbackForAnotherMerchantIsRejectedEvenWhenSigned() {
+        Map<String, String> q = queryOf(service.createPaymentUrl(7L, "127.0.0.1"));
+        Map<String, String> cb = signedCallback(q, "00", "00");
+        cb.put("vnp_TmnCode", "OTHER_MERCHANT");
+        cb.put("vnp_SecureHash", sign(cb));
+
+        assertThat(service.handleCallback(cb).rspCode()).isEqualTo("97");
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PENDING);
+    }
+
+    @Test
+    void callbackForCancelledOrderCannotMarkPaymentPaid() {
+        Map<String, String> q = queryOf(service.createPaymentUrl(7L, "127.0.0.1"));
+        payment.getOrder().setStatus(OrderStatus.CANCELLED);
+
+        VnPayService.Result result = service.handleCallback(signedCallback(q, "00", "00"));
+
+        assertThat(result.rspCode()).isEqualTo("02");
+        assertThat(result.paid()).isFalse();
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PENDING);
+    }
+
+    @Test
+    void eachPaymentAttemptUsesADifferentReference() {
+        String first = queryOf(service.createPaymentUrl(7L, "127.0.0.1")).get("vnp_TxnRef");
+        payment.setStatus(PaymentStatus.FAILED);
+        String second = queryOf(service.createPaymentUrl(7L, "127.0.0.1")).get("vnp_TxnRef");
+        assertThat(first).isNotEqualTo(second);
+    }
+
+    @Test
     void callbackWithoutSignatureIsRejected() {
         assertThat(service.handleCallback(Map.of("vnp_TxnRef", "7-1")).rspCode()).isEqualTo("97");
     }
@@ -126,6 +200,10 @@ class VnPayServiceTest {
     private String sign(Map<String, String> params) {
         // Dùng chính logic ký của service qua phản chiếu để test không lặp lại thuật toán.
         Map<String, String> sorted = new java.util.TreeMap<>(params);
+        // Khi ký lại callback, phải bỏ chữ ký cũ (không thuộc dữ liệu ký).
+        // Nếu giữ vnp_SecureHash, test Unicode sẽ tạo HMAC sai dù service xử lý đúng.
+        sorted.remove("vnp_SecureHash");
+        sorted.remove("vnp_SecureHashType");
         String query = (String) ReflectionTestUtils.invokeMethod(VnPayService.class, "buildQuery", sorted);
         return (String) ReflectionTestUtils.invokeMethod(service, "hmacSha512", query);
     }

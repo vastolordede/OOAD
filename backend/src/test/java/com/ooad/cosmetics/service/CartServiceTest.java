@@ -67,6 +67,8 @@ class CartServiceTest {
         when(currentUserService.requireCurrentUser()).thenReturn(user);
         when(cartRepository.findByUserIdAndStatus(1L, CartStatus.ACTIVE))
                 .thenReturn(Optional.of(cart));
+        org.mockito.Mockito.lenient().when(cartRepository.lockByUserIdAndStatus(1L, CartStatus.ACTIVE))
+                .thenReturn(Optional.of(cart));
     }
 
     @Test
@@ -121,6 +123,20 @@ class CartServiceTest {
         assertThat(existing.getQuantity()).isEqualTo(5);
         assertThat(response.totalQuantity()).isEqualTo(5);
         assertThat(response.subtotal()).isEqualByComparingTo(new BigDecimal("500000"));
+    }
+
+    @Test
+    void addItemRejectsIntegerOverflowInsteadOfCreatingNegativeQuantity() {
+        ProductVariant variant = variant(10L, "100000", Integer.MAX_VALUE, CatalogStatus.ACTIVE);
+        CartItem existing = item(variant, Integer.MAX_VALUE);
+        when(variantRepository.findById(10L)).thenReturn(Optional.of(variant));
+        when(cartItemRepository.findByCartIdAndVariantId(100L, 10L))
+                .thenReturn(Optional.of(existing));
+
+        assertThatThrownBy(() -> service.addItem(new AddCartItemRequest(10L, 1)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Quantity is too large");
+        assertThat(existing.getQuantity()).isEqualTo(Integer.MAX_VALUE);
     }
 
     @Test

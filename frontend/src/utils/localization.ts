@@ -32,7 +32,7 @@ export function reviewStatusLabel(status: ReviewStatus): string {
 }
 
 export function paymentMethodLabel(method: PaymentMethod): string {
-  return method === 'COD' ? 'Thanh toán khi nhận hàng' : 'Thanh toán trực tuyến (mô phỏng)'
+  return method === 'COD' ? 'Thanh toán khi nhận hàng' : 'Thanh toán trực tuyến'
 }
 
 export function paymentStatusLabel(status: PaymentStatus): string {

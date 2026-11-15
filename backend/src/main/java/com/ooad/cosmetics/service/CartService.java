@@ -49,13 +49,13 @@ public class CartService {
     /** C05: lấy giỏ hiện tại (tự tạo nếu chưa có, C03). */
     @Transactional
     public CartResponse getMyCart() {
-        return toResponse(getOrCreateActiveCart());
+        return toResponse(getOrCreateActiveCart(true));
     }
 
     /** C06: thêm sản phẩm; nếu variant đã có trong giỏ thì cộng dồn số lượng. */
     @Transactional
     public CartResponse addItem(AddCartItemRequest request) {
-        Cart cart = getOrCreateActiveCart();
+        Cart cart = getOrCreateActiveCart(true);
 
         ProductVariant variant = variantRepository.findById(request.variantId())
                 .orElseThrow(() ->
@@ -67,7 +67,12 @@ public class CartService {
                 .findByCartIdAndVariantId(cart.getId(), variant.getId())
                 .orElse(null);
 
-        int newQuantity = request.quantity() + (item == null ? 0 : item.getQuantity());
+        final int newQuantity;
+        try {
+            newQuantity = Math.addExact(request.quantity(), item == null ? 0 : item.getQuantity());
+        } catch (ArithmeticException e) {
+            throw new BadRequestException("Quantity is too large");
+        }
         requireEnoughStock(variant, newQuantity);
 
         if (item == null) {
@@ -84,7 +89,7 @@ public class CartService {
     /** C07: đặt lại số lượng của một dòng trong giỏ. */
     @Transactional
     public CartResponse updateItem(Long itemId, UpdateCartItemRequest request) {
-        Cart cart = getOrCreateActiveCart();
+        Cart cart = getOrCreateActiveCart(true);
         CartItem item = requireItem(itemId, cart.getId());
 
         requireSellable(item.getVariant());
@@ -97,7 +102,7 @@ public class CartService {
     /** C08 */
     @Transactional
     public CartResponse removeItem(Long itemId) {
-        Cart cart = getOrCreateActiveCart();
+        Cart cart = getOrCreateActiveCart(true);
         CartItem item = requireItem(itemId, cart.getId());
 
         cartItemRepository.delete(item);
@@ -109,16 +114,20 @@ public class CartService {
     /** C09 */
     @Transactional
     public CartResponse clear() {
-        Cart cart = getOrCreateActiveCart();
+        Cart cart = getOrCreateActiveCart(true);
         cartItemRepository.deleteAllByCartId(cart.getId());
         return toResponse(cart);
     }
 
-    private Cart getOrCreateActiveCart() {
+    private Cart getOrCreateActiveCart(boolean forUpdate) {
         User user = currentUserService.requireCurrentUser();
-
-        return cartRepository
-                .findByUserIdAndStatus(user.getId(), CartStatus.ACTIVE)
+        if (forUpdate) {
+            // User-level lock also covers the case when this is the first cart.
+            cartRepository.lockOwnerById(user.getId());
+        }
+        return (forUpdate
+                ? cartRepository.lockByUserIdAndStatus(user.getId(), CartStatus.ACTIVE)
+                : cartRepository.findByUserIdAndStatus(user.getId(), CartStatus.ACTIVE))
                 .orElseGet(() -> {
                     Cart cart = new Cart();
                     cart.setUser(user);

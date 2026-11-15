@@ -91,7 +91,7 @@ public class PasswordResetService {
         Instant now = Instant.now();
 
         PasswordResetToken resetToken = tokenRepository
-                .findByTokenHash(hashToken(request.token()))
+                .lockByTokenHash(hashToken(request.token()))
                 .orElseThrow(() ->
                         new BadRequestException("Invalid or expired reset token")
                 );

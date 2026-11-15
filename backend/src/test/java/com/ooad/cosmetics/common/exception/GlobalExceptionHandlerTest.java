@@ -17,6 +17,14 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void malformedJsonReturns400Not500() {
+        org.springframework.http.converter.HttpMessageNotReadableException malformed =
+                org.mockito.Mockito.mock(org.springframework.http.converter.HttpMessageNotReadableException.class);
+        ResponseEntity<ApiResponse<Void>> response = handler.handleMalformedRequest(malformed);
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+
+    @Test
     void badRequestReturns400() {
         ResponseEntity<ApiResponse<Void>> response = handler.handleBadRequest(new BadRequestException("Bad request"));
         assertThat(response.getStatusCode().value()).isEqualTo(400);

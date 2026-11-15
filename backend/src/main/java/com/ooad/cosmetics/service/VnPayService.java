@@ -8,6 +8,7 @@ import com.ooad.cosmetics.entity.OrderStatus;
 import com.ooad.cosmetics.entity.Payment;
 import com.ooad.cosmetics.entity.PaymentMethod;
 import com.ooad.cosmetics.entity.PaymentStatus;
+import com.ooad.cosmetics.repository.OrderRepository;
 import com.ooad.cosmetics.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,11 +21,13 @@ import java.nio.charset.StandardCharsets;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.time.Instant;
+import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HexFormat;
 import java.util.Map;
+import java.util.UUID;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -45,10 +48,16 @@ public class VnPayService {
 
     private final VnPayProperties props;
     private final PaymentRepository paymentRepository;
+    private final OrderRepository orderRepository;
 
-    public VnPayService(VnPayProperties props, PaymentRepository paymentRepository) {
+    public VnPayService(
+            VnPayProperties props,
+            PaymentRepository paymentRepository,
+            OrderRepository orderRepository
+    ) {
         this.props = props;
         this.paymentRepository = paymentRepository;
+        this.orderRepository = orderRepository;
     }
 
     @Transactional
@@ -57,7 +66,10 @@ public class VnPayService {
             throw new IllegalStateException("VNPay is not configured (vnpay.tmn-code / vnpay.hash-secret)");
         }
 
-        // ADAPT: nếu PaymentRepository chưa có, thêm: Optional<Payment> findByOrderId(Long orderId);
+        // Lock the order before any payment mutation: cancel, confirmation and callback
+        // must never race on the same pending order.
+        orderRepository.lockById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
         Payment payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
         Order order = payment.getOrder();
@@ -71,9 +83,20 @@ public class VnPayService {
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new BadRequestException("Only a pending order can be paid");
         }
+        // A fresh click must not overwrite the only reference for an in-flight payment.
+        // Otherwise a late successful callback for the first attempt would be lost.
+        if (payment.getStatus() == PaymentStatus.PENDING
+                && payment.getTransactionRef() != null
+                && !payment.getTransactionRef().startsWith("MOCK-")) {
+            Instant attemptAt = payment.getUpdatedAt();
+            if (attemptAt == null || attemptAt.isAfter(
+                    Instant.now().minus(Duration.ofMinutes(props.getExpireMinutes() + 5L)))) {
+                throw new BadRequestException("A VNPay attempt is pending; check its result before retrying");
+            }
+        }
 
         // Mỗi lần thử thanh toán cần mã tham chiếu mới (VNPay không cho trùng vnp_TxnRef).
-        String txnRef = orderId + "-" + System.currentTimeMillis();
+        String txnRef = orderId + "-" + UUID.randomUUID().toString().replace("-", "");
         payment.setTransactionRef(txnRef);
         paymentRepository.save(payment);
 
@@ -99,9 +122,17 @@ public class VnPayService {
 
     @Transactional
     public Result handleCallback(Map<String, String> rawParams) {
+        // Fail closed: an empty HMAC secret would make callbacks forgeable.
+        if (props.getTmnCode().isBlank() || props.getHashSecret().isBlank()) {
+            return new Result("97", "Payment provider is not configured", false, null);
+        }
         String received = rawParams.get("vnp_SecureHash");
-        if (received == null || !verifySignature(rawParams, received)) {
-            return new Result("97", "Invalid signature", false, null);
+        if (received == null || !verifySignature(rawParams, received)
+                || !props.getTmnCode().equals(rawParams.get("vnp_TmnCode"))
+                || !"VND".equals(rawParams.get("vnp_CurrCode"))
+                || !hasText(rawParams.get("vnp_ResponseCode"))
+                || !hasText(rawParams.get("vnp_TransactionStatus"))) {
+            return new Result("97", "Invalid payment callback", false, null);
         }
 
         String txnRef = rawParams.get("vnp_TxnRef");
@@ -110,8 +141,15 @@ public class VnPayService {
             return new Result("01", "Order not found", false, null);
         }
 
+        // Lock in the same order as cancellation and admin status transitions.
+        Order lockedOrder = orderRepository.lockById(orderId).orElse(null);
+        if (lockedOrder == null) {
+            return new Result("01", "Order not found", false, orderId);
+        }
+
         Payment payment = paymentRepository.findByOrderId(orderId).orElse(null);
-        if (payment == null || !txnRef.equals(payment.getTransactionRef())) {
+        if (payment == null || payment.getMethod() != PaymentMethod.ONLINE
+                || !txnRef.equals(payment.getTransactionRef())) {
             return new Result("01", "Order not found", false, orderId);
         }
 
@@ -122,8 +160,8 @@ public class VnPayService {
         if (payment.getStatus() == PaymentStatus.PAID) {
             return new Result("02", "Order already confirmed", true, orderId);
         }
-        if (payment.getOrder().getStatus() == OrderStatus.CANCELLED) {
-            return new Result("02", "Order was cancelled", false, orderId);
+        if (lockedOrder.getStatus() != OrderStatus.PENDING) {
+            return new Result("02", "Order is no longer pending", false, orderId);
         }
 
         boolean success = "00".equals(rawParams.get("vnp_ResponseCode"))
@@ -140,6 +178,10 @@ public class VnPayService {
     }
 
     // ---- helpers -------------------------------------------------------------
+
+    private static boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
 
     boolean verifySignature(Map<String, String> rawParams, String received) {
         Map<String, String> sorted = new TreeMap<>();
@@ -163,7 +205,7 @@ public class VnPayService {
     }
 
     private static String enc(String value) {
-        return URLEncoder.encode(value, StandardCharsets.US_ASCII);
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     private String hmacSha512(String data) {

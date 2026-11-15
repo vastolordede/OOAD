@@ -3,6 +3,7 @@ package com.ooad.cosmetics.service;
 import com.ooad.cosmetics.common.exception.BadRequestException;
 import com.ooad.cosmetics.common.exception.ResourceNotFoundException;
 import com.ooad.cosmetics.common.response.PageResponse;
+import com.ooad.cosmetics.config.VnPayProperties;
 import com.ooad.cosmetics.dto.order.AdminOrderResponse;
 import com.ooad.cosmetics.dto.order.OrderResponse;
 import com.ooad.cosmetics.dto.order.OrderSummaryResponse;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Comparator;
@@ -44,6 +46,7 @@ public class OrderService {
     private final StockService stockService;
     private final VoucherService voucherService;
     private final CurrentUserService currentUserService;
+    private final VnPayProperties vnPayProperties;
 
     public OrderService(
             OrderRepository orderRepository,
@@ -51,7 +54,8 @@ public class OrderService {
             PaymentRepository paymentRepository,
             StockService stockService,
             VoucherService voucherService,
-            CurrentUserService currentUserService
+            CurrentUserService currentUserService,
+            VnPayProperties vnPayProperties
     ) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
@@ -59,6 +63,7 @@ public class OrderService {
         this.stockService = stockService;
         this.voucherService = voucherService;
         this.currentUserService = currentUserService;
+        this.vnPayProperties = vnPayProperties;
     }
 
     // ------------------------------------------------------------------
@@ -211,6 +216,24 @@ public class OrderService {
 
     /** O24: hoàn tồn kho, trả lượt dùng voucher, ghi nhận hủy. */
     private void cancel(Order order) {
+        Payment payment = paymentRepository.findByOrderId(order.getId()).orElse(null);
+        if (payment != null && payment.getMethod() == PaymentMethod.ONLINE) {
+            if (payment.getStatus() == PaymentStatus.PAID) {
+                throw new BadRequestException(
+                        "Paid online orders require a real gateway refund before cancellation"
+                );
+            }
+            if (payment.getStatus() == PaymentStatus.PENDING
+                    && payment.getTransactionRef() != null
+                    && !payment.getTransactionRef().startsWith("MOCK-")) {
+                Instant attemptAt = payment.getUpdatedAt();
+                if (attemptAt == null || attemptAt.isAfter(
+                        Instant.now().minus(Duration.ofMinutes(vnPayProperties.getExpireMinutes() + 5L)))) {
+                    throw new BadRequestException("Wait for the active VNPay attempt to finish before cancelling");
+                }
+            }
+        }
+
         List<OrderItem> items = orderItemRepository.findByOrderIdOrderByIdAsc(order.getId());
 
         // Cùng thứ tự khóa dòng như lúc tạo đơn để tránh deadlock.
@@ -223,11 +246,7 @@ public class OrderService {
         order.setStatus(OrderStatus.CANCELLED);
         order.setCancelledAt(Instant.now());
 
-        paymentRepository.findByOrderId(order.getId()).ifPresent(payment -> {
-            if (payment.getStatus() == PaymentStatus.PAID) {
-                payment.setStatus(PaymentStatus.REFUNDED);
-            }
-        });
+        // No gateway refund exists in this project. Never label a payment REFUNDED here.
     }
 
     /** O32 */
